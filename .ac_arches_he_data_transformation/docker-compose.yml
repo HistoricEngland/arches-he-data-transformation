@@ -1,0 +1,90 @@
+
+services:
+    archeshedatatransformation:
+      container_name: archeshedatatransformation
+      image: he/arches_he_data_transformation:dev_build
+      build:
+        args:
+          - "PROJ_NAME=arches_he_data_transformation"
+          - "DOCKER_PATH=./arches_he_data_transformation/.ac_arches_he_data_transformation/docker"
+        context: ../..
+        dockerfile: ./arches_he_data_transformation/.ac_arches_he_data_transformation/Dockerfile
+      command: run_arches
+      volumes:
+        - ../../arches:/web_root/arches
+        - ../../arches_he_data_transformation:/web_root/arches_he_data_transformation
+        - ./docker:/web_root/docker
+        - ../../arches_he_data_transformation-package:/web_root/arches_he_data_transformation_package
+        - ../../arches_he_data_transformation-data:/web_root/arches_he_data_transformation_data
+      env_file:
+        - ./docker/env_file.env
+      ports:
+        - 8002:8000
+        - 5678:5678
+      stdin_open: true
+      tty: true
+    
+    ## - possible 
+    #archeshedatatransformation-bash:
+    #  profiles:
+    #    - livereload
+    #  container_name: archeshedatatransformation-bash
+    #  image: he/arches_he_data_transformation:dev_build
+    #  command: ["bash"]
+    #  volumes:
+    #    - ../../arches:/web_root/arches
+    #    - ../../arches_he_data_transformation:/web_root/arches_he_data_transformation
+    #    - ./docker:/web_root/docker
+    #    - ../../arches_he_data_transformation-package:/web_root/arches_he_data_transformation_package
+    #    - ../../arches_he_data_transformation-data:/web_root/arches_he_data_transformation_data
+    #  env_file:
+    #    - ./docker/env_file.env
+    #  ports:
+    #    - 35729:35729      
+    #  depends_on:
+    #      - archeshedatatransformation
+    #  stdin_open: true
+    #  tty: true
+
+    archeshedatatransformation-livereload:
+      profiles:
+        - livereload
+      container_name: archeshedatatransformation-livereload
+      image: he/arches_he_data_transformation:dev_build
+      command: run_livereload
+      volumes:
+        - ../../arches:/web_root/arches
+        - ../../arches_he_data_transformation:/web_root/arches_he_data_transformation
+      env_file:
+        - ./docker/env_file.env
+      ports:
+        - 35729:35729      
+      depends_on:
+          - archeshedatatransformation
+      stdin_open: true
+      tty: true
+    
+    archeshedatatransformation-webpack:
+      container_name: archeshedatatransformation-webpack
+      image: he/arches_he_data_transformation:dev_build
+      command: run_webpack
+      volumes:
+        - ../../arches:/web_root/arches
+        - ../../arches_he_data_transformation:/web_root/arches_he_data_transformation
+      env_file:
+        - ./docker/env_file.env
+      ports:
+        - 8028:8021
+      depends_on:
+          - archeshedatatransformation
+      stdin_open: true
+      tty: true
+
+networks:
+  default:
+    external: true
+    name: archeshedatatransformation-network
+
+volumes:
+    arches-log:
+    arches-static:

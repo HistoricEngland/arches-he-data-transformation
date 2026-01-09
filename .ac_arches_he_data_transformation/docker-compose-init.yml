@@ -1,0 +1,21 @@
+
+services:
+    archeshedatatransformation:
+      container_name: archeshedatatransformation
+      image: he/arches_he_data_transformation:dev_build
+      build:
+        args:
+          - "PROJ_NAME=arches_he_data_transformation"
+          - "DOCKER_PATH=./arches_he_data_transformation/.ac_arches_he_data_transformation/docker"
+        context: ../..
+        dockerfile: ./arches_he_data_transformation/.ac_arches_he_data_transformation/Dockerfile
+      command: create_project
+      volumes:
+        - ../..:/web_root
+      env_file:
+        - ./docker/env_file.env
+      ports:
+        - 8002:8000
+        - 5678:5678
+      stdin_open: true
+      tty: true

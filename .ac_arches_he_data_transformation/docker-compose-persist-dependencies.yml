@@ -1,0 +1,102 @@
+
+services:
+    nginx-archeshedatatransformation:
+      container_name: nginx-archeshedatatransformation
+      image: nginx:latest
+      ports:
+        - "8080:80"
+      volumes:
+        - ./docker/nginx-config/default.conf:/etc/nginx/conf.d/default.conf
+      networks:
+        - archeshedatatransformation-network
+
+    db-archeshedatatransformation:
+      container_name: db-archeshedatatransformation
+      image: postgis/postgis:14-3.2
+      volumes:
+        - ../../arches_he_data_transformation-postgres-data:/var/lib/postgresql/data
+        - ../../arches_he_data_transformation-postgres-log:/var/log/postgresql
+        - ./docker/init-unix.sql:/docker-entrypoint-initdb.d/init.sql # to set up the DB template
+      ports:
+        - '5433:5432'
+      env_file: 
+        - ./docker/env_file.env
+      networks:
+        - archeshedatatransformation-network
+
+    elastic-bindmount-init-archeshedatatransformation:
+      image: alpine
+      container_name: elastic-bindmount-init-archeshedatatransformation
+      restart: "no"
+      entrypoint: |
+        /bin/sh -c "chown 1000:1000 /esBindMount"
+      volumes:
+        - ../../arches_he_data_transformation-elasticsearch-data:/esBindMount
+
+
+    elasticsearch-archeshedatatransformation:
+      container_name: elasticsearch-archeshedatatransformation
+      image: elasticsearch:8.5.0
+      volumes:
+        #- ../../elasticsearch_data_arches_he_data_transformation:/usr/share/elasticsearch/data
+        - ../../arches_he_data_transformation-elasticsearch-data:/usr/share/elasticsearch/data
+      ports:
+        - "9201:9200"
+        - "9301:9300"
+      env_file: 
+        - ./docker/env_file.env
+      networks:
+        - archeshedatatransformation-network
+      depends_on:
+        - elastic-bindmount-init-archeshedatatransformation
+
+    rabbitmq-archeshedatatransformation:
+      container_name: rabbitmq-archeshedatatransformation
+      image: rabbitmq:3.8-management
+      hostname: my-rabbit
+      volumes:
+        - rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+        - rabbitmq-logs:/var/log/rabbitmq/log
+      ports:
+        - 5673:5672
+        - 15673:15672
+      networks:
+        - archeshedatatransformation-network
+
+    #pg-feat-archeshedatatransformation:
+    #  container_name: pg-feat-archeshedatatransformation
+    #  image: pramsey/pg_featureserv
+    #  volumes:
+    #    - ../../pg_featureserv_config_arches_he_data_transformation:/config
+    #  environment:
+    #    - DATABASE_URL=postgresql://arches_spatial_views:arches_spatial_views@db-archeshedatatransformation:5432/arches_he_data_transformation
+    #  ports:
+    #    - 9000:9000
+    #  networks:
+    #    - archeshedatatransformation-network
+    #  depends_on:
+    #    - db-archeshedatatransformation
+    
+    #pg-tile-archeshedatatransformation:
+    #  container_name: pg-tile-archeshedatatransformation
+    #  image: pramsey/pg_tileserv
+    #  volumes:
+    #    - ../../pg_tileserv_config_arches_he_data_transformation:/config
+    #  environment:
+    #    - DATABASE_URL=postgresql://arches_spatial_views:arches_spatial_views@db-archeshedatatransformation:5432/arches_he_data_transformation
+    #  ports:
+    #    - 7800:7800
+    #  networks:
+    #    - archeshedatatransformation-network
+    #  depends_on:
+    #    - db-archeshedatatransformation
+
+
+networks:
+  archeshedatatransformation-network:
+    name: archeshedatatransformation-network
+    driver: bridge
+
+volumes:
+    rabbitmq-logs:
+    rabbitmq-data:
