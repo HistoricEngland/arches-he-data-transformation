@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 "etl_type": "export",
                 "description": _("ETL module for exporting bulk HTML reports from Arches."),
                 "modulename": "bulk_html_from_csv_exporter.py",
-                "classname":"BulkHTMLExporter",
+                "classname":"BulkHTMLFromCSVExporter",
                 "component":"views/components/etl_modules/bulk-html-from-csv-exporter",
             }
         )
