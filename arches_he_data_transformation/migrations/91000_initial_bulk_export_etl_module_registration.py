@@ -84,29 +84,41 @@ class Migration(migrations.Migration):
             Group = apps.get_model("auth", "Group")
             User = apps.get_model("auth", "User")
             ETLModule = apps.get_model("models", "ETLModule")
+            Plugins = apps.get_model("models", "Plugin")
             GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
             UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
             BulkHTMLEtlModule = ETLModule.objects.get(
                 etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
             )
+            BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
             resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
             admin_user_id = User.objects.get(username="admin").id
-            ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
+            etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
+            plugin_ct_id = ContentType.objects.get_for_model(BulkDataManagerPlugin).id
             all_etl_permissions = Permission.objects.filter(name__icontains="etl")
+            all_plugin_permissions = Permission.objects.filter(name__icontains="plugin")
+
 
             for perm in all_etl_permissions:
                  UserObjectPermission.objects.get_or_create(
                     user_id=admin_user_id,
-                    content_type_id=ct_id,
+                    content_type_id=etl_ct_id,
                     object_pk=str(BulkHTMLEtlModule.pk),
                     permission_id=perm.pk
                 )
 
             GroupObjectPermission.objects.get_or_create(
                 group_id=resource_exporter_group.id,
-                content_type_id=ct_id,
+                content_type_id=etl_ct_id,
                 object_pk=str(BulkHTMLEtlModule.pk),
                 permission_id=all_etl_permissions.get(codename__icontains="view").pk
+            )
+
+            GroupObjectPermission.objects.get_or_create(
+                group_id=resource_exporter_group.id,
+                content_type_id=plugin_ct_id,
+                object_pk=str(BulkDataManagerPlugin.pk),
+                permission_id=all_plugin_permissions.get(codename__icontains="view").pk
             )
 
 
