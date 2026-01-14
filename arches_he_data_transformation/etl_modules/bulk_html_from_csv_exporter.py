@@ -13,8 +13,9 @@ details = {
     "icon": "fa fa-upload",
     "slug": "bulk-html-from-csv-exporter",
     "helpsortorder": 9,
-    "helptemplate": "bulk-html-from-csv-exporter-help"
+    "helptemplate": "bulk-html-from-csv-exporter-help",
 }
+
 
 class BulkHTMLFromCSVExporter(ResourceExporter):
 
