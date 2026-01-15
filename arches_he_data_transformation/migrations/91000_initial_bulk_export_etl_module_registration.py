@@ -61,13 +61,6 @@ class Migration(migrations.Migration):
             name="Bulk HTML Exporter"
         )
 
-        try:
-            users = User.objects.using(db_alias)
-            resource_exporter_group.user_set.add(*users)
-            print("added users group")
-        except Exception as e:
-            print(e)
-
     def remove_permissions_group(apps, schema_editor, with_create_permissions=True):
         Group = apps.get_model("auth", "Group")
 
@@ -85,8 +78,10 @@ class Migration(migrations.Migration):
         User = apps.get_model("auth", "User")
         ETLModule = apps.get_model("models", "ETLModule")
         Plugins = apps.get_model("models", "Plugin")
-        GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
-        UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
+        GroupObjectPermission = apps.get_model(
+            "guardian", "GroupObjectPermission")
+        UserObjectPermission = apps.get_model(
+            "guardian", "UserObjectPermission")
         BulkHTMLEtlModule = ETLModule.objects.get(
             etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
         )
@@ -94,9 +89,11 @@ class Migration(migrations.Migration):
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
         etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
-        plugin_ct_id = ContentType.objects.get_for_model(BulkDataManagerPlugin).id
+        plugin_ct_id = ContentType.objects.get_for_model(
+            BulkDataManagerPlugin).id
         all_etl_permissions = Permission.objects.filter(name__icontains="etl")
-        all_plugin_permissions = Permission.objects.filter(name__icontains="plugin")
+        all_plugin_permissions = Permission.objects.filter(
+            name__icontains="plugin")
 
         for perm in all_etl_permissions:
             UserObjectPermission.objects.get_or_create(
@@ -110,14 +107,16 @@ class Migration(migrations.Migration):
             group_id=resource_exporter_group.id,
             content_type_id=etl_ct_id,
             object_pk=str(BulkHTMLEtlModule.pk),
-            permission_id=all_etl_permissions.get(codename__icontains="view").pk,
+            permission_id=all_etl_permissions.get(
+                codename__icontains="view").pk,
         )
 
         GroupObjectPermission.objects.get_or_create(
             group_id=resource_exporter_group.id,
             content_type_id=plugin_ct_id,
             object_pk=str(BulkDataManagerPlugin.pk),
-            permission_id=all_plugin_permissions.get(codename__icontains="view").pk,
+            permission_id=all_plugin_permissions.get(
+                codename__icontains="view").pk,
         )
 
     operations = [
