@@ -77,7 +77,9 @@ class Migration(migrations.Migration):
         Plugins = apps.get_model("models", "Plugin")
         GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
         UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
-        BulkHTMLEtlModule = ETLModule.objects.get(etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37")
+        BulkHTMLEtlModule = ETLModule.objects.get(
+            etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
+        )
         BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
@@ -109,8 +111,12 @@ class Migration(migrations.Migration):
         )
 
     operations = [
-        migrations.RunPython(add_bulk_export_etl_modules, reverse_code=remove_bulk_export_etl_modules),
+        migrations.RunPython(
+            add_bulk_export_etl_modules, reverse_code=remove_bulk_export_etl_modules
+        ),
         migrations.RunPython(activate_bulk_data_manager),
-        migrations.RunPython(add_permissions_group, reverse_code=remove_permissions_group),
+        migrations.RunPython(
+            add_permissions_group, reverse_code=remove_permissions_group
+        ),
         migrations.RunPython(set_access_permissions),
     ]
