@@ -82,7 +82,9 @@ class Migration(migrations.Migration):
         Plugins = apps.get_model("models", "Plugin")
         GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
         UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
-        BulkHTMLEtlModule = ETLModule.objects.get(etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37")
+        BulkHTMLEtlModule = ETLModule.objects.get(
+            etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
+        )
         BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
