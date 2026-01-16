@@ -1,6 +1,6 @@
 # arches-he-data-transformation
 
-> **THIS ARCHES APP US CURRENTLY UNDER DEVELOPMENT AND IS NOT CURRENTLY READY FOR USE**
+> **THIS ARCHES APP US CURRENTLY UNDER DEVELOPMENT AND IS NOT YET READY FOR USE**
 
 An Arches application which contains extensions relating to data transformation for Arches-based projects.  Designed for easy integration with Arches projects (Historic England context).
 
