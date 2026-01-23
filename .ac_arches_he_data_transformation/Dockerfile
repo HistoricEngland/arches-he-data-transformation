@@ -76,11 +76,17 @@ RUN rm -rf /root/.cache/pip/*
 # FIXME: ADD from github repository instead?
 COPY $ARCHES_PATH ${ARCHES_ROOT}
 RUN chmod +x ${ARCHES_ROOT}/arches/install/arches_admin.py
+RUN pip install --upgrade pip setuptools wheel
+
+# Install project
+COPY ./${PROJ_NAME} ${APP_ROOT}
+WORKDIR ${APP_ROOT}
+RUN pip install -e '.[dev]'
 
 # From here, run commands from ARCHES_ROOT
 WORKDIR ${ARCHES_ROOT}
 
-RUN pip install --upgrade pip setuptools wheel
+
 RUN pip install -e '.[dev]'
 RUN pre-commit install
 

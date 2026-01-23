@@ -24,8 +24,9 @@ details = {
     "icon": "fa fa-upload",
     "slug": "bulk-html-from-csv-exporter",
     "helpsortorder": 9,
-    "helptemplate": "bulk-html-from-csv-exporter-help"
+    "helptemplate": "bulk-html-from-csv-exporter-help",
 }
+
 
 class BulkHTMLFromCSVExporter(ResourceExporter):
 
@@ -45,20 +46,20 @@ class BulkHTMLFromCSVExporter(ResourceExporter):
                     tmp_file.write(chunk)
                 tmp_file.flush()
                 tmp_file.seek(0)
-                
+
                 with open(tmp_file.name, "r") as f:
                     reader = csv.DictReader(f)
                     resourceid_values = []
-                    
+
                     # Check if 'resourceid' header exists
-                    if 'resourceid' not in reader.fieldnames:
+                    if "resourceid" not in reader.fieldnames:
                         raise ValueError("Column 'resourceid' not found in CSV headers")
-                    
+
                     # Extract all values from the resourceid column
                     for row in reader:
-                        if row['resourceid']:  # Skip empty values
-                            resourceid_values.append(row['resourceid'])
-                    
+                        if row["resourceid"]:  # Skip empty values
+                            resourceid_values.append(row["resourceid"])
+
                     return resourceid_values
         else:
             raise ValueError("File is not a CSV")
@@ -70,26 +71,26 @@ class BulkHTMLFromCSVExporter(ResourceExporter):
         if graph_value in graphs_and_resources.keys():
             graphs_and_resources[graph_value].append(resourceid_value)
         else:
-            graphs_and_resources[graph_value] = [resourceid_value]   
-            
+            graphs_and_resources[graph_value] = [resourceid_value]
+
         return graphs_and_resources
-    
-    def return_html_reports_for_resources(self,graph_resource_dict,resourcetotal):
-               
+
+    def return_html_reports_for_resources(self, graph_resource_dict, resourcetotal):
+
         ret = []
-        
+
         for k, v in graph_resource_dict.items():
             graph_id = k
             resources = v
             graph = models.GraphModel.objects.get(pk=graph_id)
             html_exporter = ResourceExporter(format="html")
-            ret.append(html_exporter.export(graphid=graph,resourceinstanceids=resources))
-            
+            ret.append(html_exporter.export(graphid=graph, resourceinstanceids=resources))
+
         return ret
-    
+
     def export_bulk_html_reports(self, request):
-  
+
         resourceids = self.get_resourceid_values(request)
         export_user = request.user.id
-        
-        html_reports = proj_tasks.export_bulk_html_report.apply_async(export_user,resourceids)
+
+        html_reports = proj_tasks.export_bulk_html_report.apply_async(export_user, resourceids)

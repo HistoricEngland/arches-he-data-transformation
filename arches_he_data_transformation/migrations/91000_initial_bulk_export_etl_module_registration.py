@@ -3,7 +3,13 @@ from django.utils.translation import gettext as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
 
+
 class Migration(migrations.Migration):
+    """
+    As this is an initial migration for the Bulk HTML From CSV Exporter ETL Module, you need to run the following to reverse the migrations within it:
+    python manage.py migrate arches_he_data_transformation zero
+    For more information read the Django documentation on migrations: https://docs.djangoproject.com/en/4.2/topics/migrations/
+    """
 
     initial = True
 
@@ -13,7 +19,7 @@ class Migration(migrations.Migration):
     ]
 
     def add_bulk_export_etl_modules(apps, schema_editor):
-        '''Add Bulk HTML From CSV Exporter ETL Module'''
+        """Add Bulk HTML From CSV Exporter ETL Module"""
         ETLModule = apps.get_model("models", "ETLModule")
         ETLModule.objects.update_or_create(
             etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37",
@@ -30,43 +36,32 @@ class Migration(migrations.Migration):
                 "slug": "bulk-html-from-csv-exporter",
                 "helpsortorder": 9,
                 "helptemplate": "bulk-html-from-csv-exporter-help",
-            }
+            },
         )
 
     def remove_bulk_export_etl_modules(apps, schema_editor):
-        '''Remove Bulk HTML From CSV Exporter ETL Module'''
+        """Remove Bulk HTML From CSV Exporter ETL Module"""
         ETLModule = apps.get_model("models", "ETLModule")
         for etl in ETLModule.objects.filter(
             pk__in=[
                 "96953941-79b3-440d-9c3c-a4d7a6110a37",
-                ]
-            ):
+            ]
+        ):
             etl.delete()
 
     def activate_bulk_data_manager(apps, schema_editor):
-            '''Set Visibility of the Bulk Data Manager Plugin to True'''
-            plugins = apps.get_model("models", "Plugin")
-            for plugin in plugins.objects.all():
-                if plugin.name["en"]== "Bulk Data Manager":
-                    plugin.config["show"]= True
-                    plugin.save()
-
+        """Set Visibility of the Bulk Data Manager Plugin to True"""
+        plugins = apps.get_model("models", "Plugin")
+        for plugin in plugins.objects.all():
+            if plugin.name["en"] == "Bulk Data Manager":
+                plugin.config["show"] = True
+                plugin.save()
 
     def add_permissions_group(apps, schema_editor, with_create_permissions=True):
-        ''' Create Bulk HTML Exporter permissions group and add all named users to it'''
+        """Create Bulk HTML Exporter permissions group and add all named users to it"""
         db_alias = schema_editor.connection.alias
         Group = apps.get_model("auth", "Group")
-        User = apps.get_model("auth", "User")
-        resource_exporter_group = Group.objects.using(db_alias).create(
-            name="Bulk HTML Exporter"
-        )
-
-        try:
-            users = User.objects.using(db_alias)
-            resource_exporter_group.user_set.add(*users)
-            print("added users group")
-        except Exception as e:
-            print(e)
+        Group.objects.using(db_alias).create(name="Bulk HTML Exporter")
 
     def remove_permissions_group(apps, schema_editor, with_create_permissions=True):
         Group = apps.get_model("auth", "Group")
@@ -77,42 +72,57 @@ class Migration(migrations.Migration):
         except:
             pass
 
-
     def set_access_permissions(apps, schema_editor):
-            ''' Set access permissions for Bulk HTML From CSV Exporter ETL Module.
-            Assigns view permission to Bulk HTML Exporter group and all permissions to admin user.'''
-            Group = apps.get_model("auth", "Group")
-            User = apps.get_model("auth", "User")
-            ETLModule = apps.get_model("models", "ETLModule")
-            GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
-            UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
-            BulkHTMLEtlModule = ETLModule.objects.get(
-                etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
-            )
-            resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
-            admin_user_id = User.objects.get(username="admin").id
-            ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
-            all_etl_permissions = Permission.objects.filter(name__icontains="etl")
+        """Set access permissions for Bulk HTML From CSV Exporter ETL Module.
+        Assigns view permission to Bulk HTML Exporter group and all permissions to admin user.
+        """
+        Group = apps.get_model("auth", "Group")
+        User = apps.get_model("auth", "User")
+        ETLModule = apps.get_model("models", "ETLModule")
+        Plugins = apps.get_model("models", "Plugin")
+        GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
+        UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
+        BulkHTMLEtlModule = ETLModule.objects.get(
+            etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
+        )
+        BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
+        resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
+        admin_user_id = User.objects.get(username="admin").id
+        etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
+        plugin_ct_id = ContentType.objects.get_for_model(BulkDataManagerPlugin).id
+        all_etl_permissions = Permission.objects.filter(name__icontains="etl")
+        all_plugin_permissions = Permission.objects.filter(name__icontains="plugin")
 
-            for perm in all_etl_permissions:
-                 UserObjectPermission.objects.get_or_create(
-                    user_id=admin_user_id,
-                    content_type_id=ct_id,
-                    object_pk=str(BulkHTMLEtlModule.pk),
-                    permission_id=perm.pk
-                )
-
-            GroupObjectPermission.objects.get_or_create(
-                group_id=resource_exporter_group.id,
-                content_type_id=ct_id,
+        for perm in all_etl_permissions:
+            UserObjectPermission.objects.get_or_create(
+                user_id=admin_user_id,
+                content_type_id=etl_ct_id,
                 object_pk=str(BulkHTMLEtlModule.pk),
-                permission_id=all_etl_permissions.get(codename__icontains="view").pk
+                permission_id=perm.pk,
             )
 
+        GroupObjectPermission.objects.get_or_create(
+            group_id=resource_exporter_group.id,
+            content_type_id=etl_ct_id,
+            object_pk=str(BulkHTMLEtlModule.pk),
+            permission_id=all_etl_permissions.get(codename__icontains="view").pk,
+        )
 
-    operations = [
-        migrations.RunPython(add_bulk_export_etl_modules, reverse_code=remove_bulk_export_etl_modules),
-        migrations.RunPython(activate_bulk_data_manager),
-        migrations.RunPython(add_permissions_group, reverse_code=remove_permissions_group),
-        migrations.RunPython(set_access_permissions),
-    ]
+        GroupObjectPermission.objects.get_or_create(
+            group_id=resource_exporter_group.id,
+            content_type_id=plugin_ct_id,
+            object_pk=str(BulkDataManagerPlugin.pk),
+            permission_id=all_plugin_permissions.get(codename__icontains="view").pk,
+        )
+
+    def migrate(apps, schema_editor, with_create_permissions=True):
+        Migration.add_bulk_export_etl_modules(apps, schema_editor)
+        Migration.activate_bulk_data_manager(apps, schema_editor)
+        Migration.add_permissions_group(apps, schema_editor, with_create_permissions)
+        Migration.set_access_permissions(apps, schema_editor)
+
+    def reverse_migrate(apps, schema_editor, with_create_permissions=True):
+        Migration.remove_bulk_export_etl_modules(apps, schema_editor)
+        Migration.remove_permissions_group(apps, schema_editor, with_create_permissions)
+
+    operations = [migrations.RunPython(migrate, reverse_code=reverse_migrate)]
