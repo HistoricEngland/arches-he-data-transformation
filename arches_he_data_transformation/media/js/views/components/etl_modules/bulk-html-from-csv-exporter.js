@@ -16,6 +16,11 @@ define([
 		this.loadId = params.loadId || uuid.generate();
 		this.loading = params.loading || ko.observable(false);
 		this.alert = params.alert;
+		this.state = params.state; // controls Task Details vs Task Status
+		this.activeTab = params.activeTab || function(){}; // matches Branch Excel pattern
+		// Status + polling data provided by parent ETL page
+		this.loadDetails = params.load_details || ko.observable();
+		this.selectedLoadEvent = params.selectedLoadEvent || ko.observable();
 
 		// File + CSV state
 		this.fileInfo = ko.observable({ name: '', size: 0 });
@@ -26,25 +31,28 @@ define([
 		// Backing form data (persist file for export)
 		this.formData = new window.FormData();
 
-		// Upload handler (keeps file in formData for later export)
+		// Upload handler: immediately triggers export and switches to status tab
 		this.addFile = function(file) {
 			self.loading(true);
 			self.fileInfo({ name: file.name, size: file.size });
 			self.formData.set('file', file, file.name);
 
-			// Ask backend to read CSV and return resource IDs (aligns with get_resourceid_values)
-			self.submit('read').then(function(response) {
-				// Expect backend to return { result: { resourceids: [...], csv_file: 'name.csv' } }
-				const result = response.result || {};
-				const ids = result.resourceids || [];
-				self.resourceIds(ids);
-				self.csvFileName(result.csv_file || file.name);
-				self.fileAdded(true);
+			// Trigger export right away (server will parse CSV internally)
+			self.submit('export').then(function() {
+				// Switch to status tab like Branch Excel exporter
+				if (typeof self.activeTab === 'function') { self.activeTab('import'); }
+				// Move view to Task Status if parent provided `state`
+				try { if (ko.isObservable(self.state)) { self.state('status'); } } catch (e) {}
 			}).fail(function(err) {
 				console.log(err);
 				self.alert(new JsonErrorAlertViewModel('ep-alert-red', err.responseJSON, null, function(){}));
 			}).always(function() {
+				// Reset Task Details
 				self.loading(false);
+				self.fileAdded(null);
+				self.resourceIds([]);
+				self.csvFileName(null);
+				try { if (self.dropzone) { self.dropzone.removeAllFiles(true); } } catch (e) {}
 			});
 		};
 
@@ -53,13 +61,16 @@ define([
 			if (!self.fileAdded()) { return; }
 			self.loading(true);
 			self.submit('export').then(function() {
-				// Optional: handle task id / status returned by backend
-				// e.g., show a success toast or navigate to status page
+				// Switch to status tab
+				if (typeof self.activeTab === 'function') { self.activeTab('import'); }
+				try { if (ko.isObservable(self.state)) { self.state('status'); } } catch (e) {}
 			}).fail(function(err) {
 				console.log(err);
 				self.alert(new JsonErrorAlertViewModel('ep-alert-red', err.responseJSON, null, function(){}));
 			}).always(function() {
 				self.loading(false);
+				self.fileAdded(null);
+				self.resourceIds([]);
 			});
 		};
 
