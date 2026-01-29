@@ -11,7 +11,7 @@ import arches.app.tasks as tasks
 
 
 @shared_task(bind=True)
-def export_bulk_html_report(self,user_id,load_id, resourceids):
+def export_bulk_html_report(self, user_id, load_id, resourceids):
 
     from arches_he_data_transformation.etl_modules import bulk_html_from_csv_exporter
 
@@ -20,9 +20,11 @@ def export_bulk_html_report(self,user_id,load_id, resourceids):
     status = _("Failed")
 
     try:
-        html_exporter_object = bulk_html_from_csv_exporter.BulkHTMLFromCSVExporter(request=None, loadid=load_id)
+        html_exporter_object = bulk_html_from_csv_exporter.BulkHTMLFromCSVExporter(
+            request=None, loadid=load_id
+        )
 
-        html_exporter_object.run_export_task(user_id,load_id, resourceids)
+        html_exporter_object.run_export_task(user_id, load_id, resourceids)
 
         # Check status from load event; set to Completed if indexed
         load_event = models.LoadEvent.objects.get(loadid=load_id)
@@ -39,7 +41,3 @@ def export_bulk_html_report(self,user_id,load_id, resourceids):
         msg = _("Bulk HTML Export: {} ").format(status)
         user = User.objects.get(id=user_id)
         tasks.notify_completion(msg, user)
-
-    
-
-
