@@ -9,7 +9,7 @@
 			<span><i style="color: #000" class="fa fa-cloud-upload r-select-icon"></i></span>
 		</div>
 		<h2>
-			<span data-bind="text: $root.translations.uploadCsvZipFile"></span>
+			<span data-bind="text: $root.translations.uploadCsvFile"></span>
 		</h2>
 		<h4>
 			<span data-bind="text: $root.translations.dropzoneFileUploadCaption"></span>
@@ -30,8 +30,8 @@
 					</div>
 				</div>
 			</div>
-			<h5 class="rr-splash-description">
-				<span data-bind="text: $root.translations.etlFileUploadMessage"></span>
+			<h5 class="rr-splash-description" style="white-space: pre-line;">
+				<span data-bind="text: $root.translations.etlFileUploadBulkHtmlMessage"></span>
 			</h5>
 		</div>
 	</div>
@@ -42,7 +42,7 @@
 <div class="etl-module-component-container">
 	<div class="etl-module-body">
 		<h3 style="margin-top: 15px; margin-bottom: 5px; font-size: 19px;">
-			<span>Bulk HTML from CSV</span>
+			<span data-bind="text: $root.translations.bulkHtmlFromCsvExporterTitle"></span>
 		</h3>
 		<div class="etl-module-component" style="margin-top: 0px;">
 			<h4 style="margin-top: 5px; margin-bottom: 0px;">
@@ -60,7 +60,7 @@
 
 		<div class="etl-module-component" style="margin-top: 10px;">
 			<h4>
-				<span>Parsed Resource IDs</span>
+				<span data-bind="text: $root.translations.parsedResourceIds"></span>
 			</h4>
 			<div>
 				<!-- Show first few IDs for confirmation -->
@@ -96,7 +96,7 @@
 	<!-- ko if: ko.unwrap(state) === 'status' -->
 	<div class="branch-csv-etl" style="display: grid; row-gap: 2px; height:fit-content; margin-top: 16px;">
 		<h4 class="summary-title" style="padding-bottom: 20px;">
-			Export Bulk HTML Reports Summary
+			<span data-bind="text: $root.translations.bulkHtmlFromCsvExporterSummary"></span>
 		</h4>
 		<!-- ko if: selectedLoadEvent() && selectedLoadEvent().status === 'indexed' && ko.unwrap(loadDetails) -->
 		<div class="branch-csv-etl-load-summmary">
@@ -104,7 +104,7 @@
 			<!-- Zipfile link -->
 			<!-- ko if: loadDetails.zipfile -->
 			<div class="summary-header">
-				<span>Download exported zip file</span>
+				<span data-bind="text: $root.translations.downloadBulkHtmlZipFile"></span>
 			</div>
 			<div class="summary-contents" style="padding-bottom: 20px;">
 				<div class="etl-loading-metadata-value">
@@ -115,14 +115,14 @@
 
 			<!-- Export details -->
 			<div class="summary-header">
-				<span>Export details</span>
+				<span data-bind="text: $root.translations.exportDetails"></span>
 			</div>
 			<div class="summary-contents">
-				<span class="etl-loading-metadata-key">Reports have been generated for the following resource types:</span>
+				<span class="etl-loading-metadata-key" data-bind="text: $root.translations.reportResourceTypeDetails"></span>
 				<span class="etl-loading-metadata-value" data-bind="text: loadDetails.graphs"></span>
 			</div>
 			<div class="summary-contents">
-				<span class="etl-loading-metadata-key">Total number of resources in this export:</span>
+				<span class="etl-loading-metadata-key" data-bind="text: $root.translations.resourceTotalExported"></span>
 				<span class="etl-loading-metadata-value" data-bind="text: loadDetails.number_of_resources"></span>
 			</div>
 		</div>
