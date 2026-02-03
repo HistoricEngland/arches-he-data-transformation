@@ -73,14 +73,14 @@ class BulkHTMLFromCSVExporter(BaseExcelExporter):
                             for fn in reader.fieldnames
                         ]
 
-                    # Check if 'resourceid' header exists
-                    if "resourceid" not in reader.fieldnames:
+                    # Check if 'resourceinstanceid' header exists
+                    if "resourceinstanceid" not in reader.fieldnames:
                         raise ValueError("Column 'resourceid' not found in CSV headers")
 
                     # Extract all values from the resourceid column
                     for row in reader:
-                        if row["resourceid"]:  # Skip empty values
-                            resourceid_values.append(row["resourceid"])
+                        if row["resourceinstanceid"]:  # Skip empty values
+                            resourceid_values.append(row["resourceinstanceid"])
 
                     return resourceid_values
         else:
