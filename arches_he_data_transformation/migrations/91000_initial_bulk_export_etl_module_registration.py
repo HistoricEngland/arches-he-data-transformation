@@ -2,6 +2,7 @@ from django.db import migrations
 from django.utils.translation import gettext as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
+from django.db import connection
 
 
 class Migration(migrations.Migration):
@@ -85,7 +86,10 @@ class Migration(migrations.Migration):
         BulkHTMLEtlModule = ETLModule.objects.get(
             etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
         )
-        BulkDataManagerPlugin = Plugins.objects.get(name="ETL Manager")
+        try:
+            BulkDataManagerPlugin = Plugins.objects.get(name="ETL Manager")
+        except Plugins.DoesNotExist:
+            BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
         etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
