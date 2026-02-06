@@ -44,7 +44,9 @@ REFERENCE_DATA_FIXTURE_LOCATION = os.path.join(
 
 TEMPLATES[0]["DIRS"].append(os.path.join(PROJECT_TEST_ROOT, "templates"))
 
-ONTOLOGY_FIXTURES = os.path.join(PROJECT_TEST_ROOT, "fixtures", "ontologies", "test_ontology")
+ONTOLOGY_FIXTURES = os.path.join(
+    PROJECT_TEST_ROOT, "fixtures", "ontologies", "test_ontology"
+)
 ONTOLOGY_PATH = os.path.join(PROJECT_TEST_ROOT, "fixtures", "ontologies", "cidoc_crm")
 MEDIA_ROOT = os.path.join(PROJECT_TEST_ROOT, "fixtures", "data")
 
