@@ -25,6 +25,29 @@ PACKAGE_NAME = "arches_he_data_transformation"
 PROJECT_TEST_ROOT = os.path.dirname(__file__)
 MEDIA_ROOT = os.path.join(PROJECT_TEST_ROOT, "fixtures", "data")
 
+RESOURCE_GRAPH_LOCATIONS = [
+    os.path.join(PROJECT_TEST_ROOT, "fixtures", "resource_graphs"),
+    os.path.join(
+        PROJECT_TEST_ROOT,
+        "fixtures",
+        "testing_prj",
+        "testing_prj",
+        "pkg",
+        "graphs",
+        "resource_models",
+    ),
+    os.path.join(PROJECT_TEST_ROOT, "fixtures", "jsonld_base", "models"),
+]
+REFERENCE_DATA_FIXTURE_LOCATION = os.path.join(
+    PROJECT_TEST_ROOT, "fixtures", "testing_prj", "testing_prj", "pkg", "reference_data"
+)
+
+TEMPLATES[0]["DIRS"].append(os.path.join(PROJECT_TEST_ROOT, "templates"))
+
+ONTOLOGY_FIXTURES = os.path.join(PROJECT_TEST_ROOT, "fixtures", "ontologies", "test_ontology")
+ONTOLOGY_PATH = os.path.join(PROJECT_TEST_ROOT, "fixtures", "ontologies", "cidoc_crm")
+MEDIA_ROOT = os.path.join(PROJECT_TEST_ROOT, "fixtures", "data")
+
 BUSINESS_DATA_FILES = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
