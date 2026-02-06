@@ -26,7 +26,9 @@ class BaseBulkHtmlTestCase(TestCase):
             os.makedirs(cls.export_dir, exist_ok=True)
         except Exception:
             pass
-        cls._initial_zip_files = set(os.listdir(cls.export_dir)) if os.path.isdir(cls.export_dir) else set()
+        cls._initial_zip_files = (
+            set(os.listdir(cls.export_dir)) if os.path.isdir(cls.export_dir) else set()
+        )
 
         # Import ontology once
         ontology_source = os.path.join(
@@ -51,7 +53,15 @@ class BaseBulkHtmlTestCase(TestCase):
             "business_data",
             "Test_Model_Data.json",
         )
-        call_command("packages", "-o", "import_business_data", "-s", data_source, "-ow", "overwrite")
+        call_command(
+            "packages",
+            "-o",
+            "import_business_data",
+            "-s",
+            data_source,
+            "-ow",
+            "overwrite",
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -77,7 +87,9 @@ class BaseBulkHtmlTestCase(TestCase):
             pass
 
         try:
-            models.ResourceInstance.objects.filter(graph_id=cls.test_model_graph_id).delete()
+            models.ResourceInstance.objects.filter(
+                graph_id=cls.test_model_graph_id
+            ).delete()
         except Exception:
             pass
 
@@ -87,5 +99,3 @@ class BaseBulkHtmlTestCase(TestCase):
             pass
 
         super().tearDownClass()
-
-
