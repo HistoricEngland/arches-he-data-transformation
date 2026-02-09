@@ -23,10 +23,7 @@ define([
 		this.selectedLoadEvent = params.selectedLoadEvent || ko.observable();
 
 		// File + CSV state
-		this.fileInfo = ko.observable({ name: '', size: 0 });
-		this.fileAdded = ko.observable(false);
-		this.csvFileName = ko.observable();
-		this.resourceIds = ko.observableArray([]);
+		// (Removed unused: fileInfo, fileAdded, csvFileName, resourceIds)
 
 		// Backing form data (persist file for export)
 		this.formData = new window.FormData();
@@ -34,7 +31,6 @@ define([
 		// Upload handler: immediately triggers export and switches to status tab
 		this.addFile = function(file) {
 			self.loading(true);
-			self.fileInfo({ name: file.name, size: file.size });
 			self.formData.set('file', file, file.name);
 
 			// Trigger export right away (server will parse CSV internally)
@@ -49,29 +45,15 @@ define([
 			}).always(function() {
 				// Reset Task Details
 				self.loading(false);
-				self.fileAdded(null);
-				self.resourceIds([]);
-				self.csvFileName(null);
 				try { if (self.dropzone) { self.dropzone.removeAllFiles(true); } } catch (e) {}
 			});
 		};
 
-		// Trigger bulk HTML export on server; server will reuse request.FILES['file']
-		this.exportReports = function() {
-			if (!self.fileAdded()) { return; }
-			self.loading(true);
-			self.submit('export').then(function() {
-				// Switch to status tab
-				if (typeof self.activeTab === 'function') { self.activeTab('import'); }
-				try { if (ko.isObservable(self.state)) { self.state('status'); } } catch (e) {}
-			}).fail(function(err) {
-				console.log(err);
-				self.alert(new JsonErrorAlertViewModel('ep-alert-red', err.responseJSON, null, function(){}));
-			}).always(function() {
-				self.loading(false);
-				self.fileAdded(null);
-				self.resourceIds([]);
-			});
+		// Cancel upload: clear dropzone and reset formData/loading
+		this.cancelFileImport = function() {
+			try { if (self.dropzone) { self.dropzone.removeAllFiles(true); } } catch (e) {}
+			self.formData = new window.FormData();
+			self.loading(false);
 		};
 
 		// Helper to send actions to ETL manager (mirrors import-single-csv.js pattern)
@@ -89,16 +71,7 @@ define([
 			});
 		};
 
-		// UI helpers
-		this.formatSize = function(size) {
-			var bytes = size || 0;
-			if (bytes === 0) return '0 Byte';
-			var k = 1024;
-			var dm = 2;
-			var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-			var i = Math.floor(Math.log(bytes) / Math.log(k));
-			return '<strong>' + parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '</strong> ' + sizes[i];
-		};
+		// (Removed unused formatSize helper)
 
 		// Dropzone setup (single CSV upload)
 		this.uniqueId = uuid.generate();
