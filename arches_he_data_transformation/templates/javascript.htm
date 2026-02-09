@@ -1,4 +1,11 @@
+{% extends "javascript.htm" %}
+
+{% load static %}
+{% load l10n %}
 {% load i18n %}
+
+{% block arches_translations %}
+{{ block.super }}
 <div
     class='arches-translations'
     upload-csv-file='{% trans "Upload .csv File" as uploadCsvFile %} "{{ uploadCsvFile|escapejs }}"'
@@ -10,3 +17,4 @@
     resource-total-exported='{% trans "Total number of resources in this export:" as resourceTotalExported %} "{{ resourceTotalExported|escapejs }}"'
     parsed-resource-ids='{% trans "Parsed Resource IDs" as parsedResourceIds %} "{{ parsedResourceIds|escapejs }}"'
 ></div>
+{% endblock arches_translations %}
