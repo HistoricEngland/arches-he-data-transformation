@@ -68,11 +68,16 @@ class BulkHTMLFromCSVExporter(BaseExcelExporter):
                     resourceid_values = []
 
                     if reader.fieldnames:
-                        reader.fieldnames = [(fn.lstrip("\ufeff").strip() if isinstance(fn, str) else fn) for fn in reader.fieldnames]
+                        reader.fieldnames = [
+                            (fn.lstrip("\ufeff").strip() if isinstance(fn, str) else fn)
+                            for fn in reader.fieldnames
+                        ]
 
                     # Check if 'resourceinstanceid' header exists
                     if "resourceinstanceid" not in reader.fieldnames:
-                        raise ValueError("Column 'resourceinstanceid' not found in CSV headers")
+                        raise ValueError(
+                            "Column 'resourceinstanceid' not found in CSV headers"
+                        )
 
                     # Extract all values from the resourceinstanceid column
                     for row in reader:
@@ -86,7 +91,11 @@ class BulkHTMLFromCSVExporter(BaseExcelExporter):
     def return_graphs_and_resources(self, resourceids):
         graphs_and_resources = {}
         for resourceid_value in resourceids:
-            graph_value = ResourceInstance.objects.filter(resourceinstanceid=resourceid_value).values("graph_id").first()
+            graph_value = (
+                ResourceInstance.objects.filter(resourceinstanceid=resourceid_value)
+                .values("graph_id")
+                .first()
+            )
             graph_id = str(graph_value["graph_id"])
             if graph_id in graphs_and_resources.keys():
                 graphs_and_resources[graph_id].append(resourceid_value)
@@ -104,7 +113,9 @@ class BulkHTMLFromCSVExporter(BaseExcelExporter):
             resources = v
             graph = models.GraphModel.objects.get(pk=graph_id)
             html_exporter = ResourceExporter(format="html")
-            html_reports = html_exporter.export(graph_id=graph, resourceinstanceids=resources)
+            html_reports = html_exporter.export(
+                graph_id=graph, resourceinstanceids=resources
+            )
             ret.append(html_reports)
 
         return ret
@@ -144,15 +155,21 @@ class BulkHTMLFromCSVExporter(BaseExcelExporter):
                 ),
             )
 
-        logger.info(f"Generating HTML files for resources; total resources: {len(resource_ids)}")
+        logger.info(
+            f"Generating HTML files for resources; total resources: {len(resource_ids)}"
+        )
         # Generate HTML files for the given resources; returns a list-of-lists
-        html_files_nested = self.return_html_reports_for_resources(graphs_and_resources, len(resource_ids))
+        html_files_nested = self.return_html_reports_for_resources(
+            graphs_and_resources, len(resource_ids)
+        )
         # Flatten into a single list of {'name': ..., 'outputfile': StringIO}
         html_files = [item for sublist in html_files_nested for item in sublist]
 
         # Create a zip stream and save directly to export_deliverables (no SearchExportHistory)
         zip_stream = zip_utils.create_zip_file(html_files, filekey="outputfile")
-        zip_name = f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
+        zip_name = (
+            f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
+        )
         zip_dir = os.path.join(settings.MEDIA_ROOT, "export_deliverables")
         try:
             os.makedirs(zip_dir, exist_ok=True)
