@@ -118,7 +118,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         new_zip_path = os.path.join(zip_dir, new_zip_name)
         with zipfile.ZipFile(new_zip_path, "r") as zf:
             names = zf.namelist()
-            html_files = [n for n in names if n.lower().endswith(".htm") or n.lower().endswith(".html")]
+            html_files = [n for n in names if n.lower().endswith((".htm", ".html"))]
             self.assertEqual(
                 len(html_files),
                 1,
