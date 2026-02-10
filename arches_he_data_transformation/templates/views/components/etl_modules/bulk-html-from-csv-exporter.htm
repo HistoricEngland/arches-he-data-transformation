@@ -46,6 +46,18 @@
 		<h4 class="summary-title" style="padding-bottom: 20px;">
 			<span data-bind="text: $root.translations.bulkHtmlFromCsvExporterSummary"></span>
 		</h4>
+
+		<!-- Error state -->
+		<!-- ko if: selectedLoadEvent() && selectedLoadEvent().status === 'failed' -->
+		<div class="branch-csv-etl-load-summmary">
+			<div class="summary-header">
+				<span>Error</span>
+			</div>
+			<div class="summary-contents" style="padding-bottom: 20px;">
+				<div class="etl-loading-metadata-value" data-bind="text: selectedLoadEvent().error_message || (ko.unwrap(loadDetails) && loadDetails.error_message)"></div>
+			</div>
+		</div>
+		<!-- /ko -->
 		<!-- ko if: selectedLoadEvent() && selectedLoadEvent().status === 'indexed' && ko.unwrap(loadDetails) -->
 		<div class="branch-csv-etl-load-summmary">
 
