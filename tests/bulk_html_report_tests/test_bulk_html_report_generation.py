@@ -39,14 +39,12 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         etl = models.ETLModule.objects.all()
         self.assertTrue(etl.filter(name="Bulk HTML From CSV Exporter").exists())
 
-    # Does the read function return the expected resourceids for the test data?
+    # Does the read function return the expected resourceinstanceids for the test data?
     def test_02_etl_module_resourceids_read(self):
 
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_1.csv")
 
-        request = self.create_csv_file_request(
-            file_path=csv_file_path, file_name="test_data_csv_1.csv"
-        )
+        request = self.create_csv_file_request(file_path=csv_file_path, file_name="test_data_csv_1.csv")
 
         exporter = BulkHTMLFromCSVExporter()
         result = exporter.read(request=request)
@@ -59,9 +57,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         # Use invalid CSV with wrong header ('resourceid' instead of 'resourceinstanceid')
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_2.csv")
 
-        request = self.create_csv_file_request(
-            file_path=csv_file_path, file_name="test_data_csv_2.csv"
-        )
+        request = self.create_csv_file_request(file_path=csv_file_path, file_name="test_data_csv_2.csv")
 
         exporter = BulkHTMLFromCSVExporter()
         # Expect ValueError due to missing 'resourceinstanceid' header
@@ -72,9 +68,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
 
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_1.csv")
 
-        request = self.create_csv_file_request(
-            file_path=csv_file_path, file_name="test_data_csv_1.csv"
-        )
+        request = self.create_csv_file_request(file_path=csv_file_path, file_name="test_data_csv_1.csv")
 
         exporter = BulkHTMLFromCSVExporter()
 
@@ -89,17 +83,13 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         self.assertIsInstance(graphs_and_resources, dict)
         # Ensure the test graph id is present and contains the expected resource ids
         self.assertIn(self.test_model_graph_id, graphs_and_resources)
-        self.assertEqual(
-            set(graphs_and_resources[self.test_model_graph_id]), set(resourceids)
-        )
+        self.assertEqual(set(graphs_and_resources[self.test_model_graph_id]), set(resourceids))
 
     def test_05_etl_module_return_html_zip_file(self):
 
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_1.csv")
 
-        request = self.create_csv_file_request(
-            file_path=csv_file_path, file_name="test_data_csv_1.csv"
-        )
+        request = self.create_csv_file_request(file_path=csv_file_path, file_name="test_data_csv_1.csv")
 
         exporter = BulkHTMLFromCSVExporter()
 
@@ -128,11 +118,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         new_zip_path = os.path.join(zip_dir, new_zip_name)
         with zipfile.ZipFile(new_zip_path, "r") as zf:
             names = zf.namelist()
-            html_files = [
-                n
-                for n in names
-                if n.lower().endswith(".htm") or n.lower().endswith(".html")
-            ]
+            html_files = [n for n in names if n.lower().endswith(".htm") or n.lower().endswith(".html")]
             self.assertEqual(
                 len(html_files),
                 1,
