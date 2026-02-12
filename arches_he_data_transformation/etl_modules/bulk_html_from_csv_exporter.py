@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 from datetime import timedelta
 from tempfile import NamedTemporaryFile
+import uuid
 from arches.app.utils.data_management.resources.exporter import ResourceExporter
 from arches.app.models import models
 from arches.app.models.models import ResourceInstance
@@ -103,9 +104,19 @@ class BulkHTMLFromCSVExporter:
                     for row in reader:
                         value = row.get(resource_id_key)
                         if value:  # Skip empty values
-                            resourceid_values.append(value)
+                            try:
+                                uuid.uuid4(value)
+                                resourceid_values.append(value)
+                            except:
+                                return {
+                                    "success": False,
+                                    "data": f"CSV Column {resource_id_key} contains invalid Resource ID values.",
+                                }
 
-                    return resourceid_values
+                    return {
+                        "success": True,
+                        "data": resourceid_values,
+                    }
         else:
             return {
                 "success": False,
