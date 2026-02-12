@@ -86,10 +86,7 @@ class Migration(migrations.Migration):
         BulkHTMLEtlModule = ETLModule.objects.get(
             etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
         )
-        try:
-            BulkDataManagerPlugin = Plugins.objects.get(name="ETL Manager")
-        except Plugins.DoesNotExist:
-            BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
+        BulkDataManagerPlugin = Plugins.objects.get(componentname="etl-manager")
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
         etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
