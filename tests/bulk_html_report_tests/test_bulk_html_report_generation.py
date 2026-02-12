@@ -74,7 +74,20 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
             "Failed to read the values in your file due to incorrect headers.  Check you have a 'resourceinstanceid' or 'resourceid' column.",
         )
 
-    def test_04_etl_module_return_resourceids(self):
+    def test_04_etl_module_invalid_resource_values(self):
+        # Use invalid CSV with non-uuid values in the resourceinstanceid column
+        csv_file_path = os.path.join("tests", "test_data", "test_data_csv_3.csv")
+
+        request = self.create_csv_file_request(
+            file_path=csv_file_path, file_name="test_data_csv_3.csv"
+        )
+
+        exporter = BulkHTMLFromCSVExporter()
+        # Expect failure response with specific error message
+        result = exporter.read(request=request)
+        self.assertFalse(result["success"])  # should indicate failure
+
+    def test_05_etl_module_return_resourceids(self):
 
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_1.csv")
 
@@ -100,7 +113,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
             set(graphs_and_resources[self.test_model_graph_id]), set(resourceids)
         )
 
-    def test_05_etl_module_return_html_zip_file(self):
+    def test_06_etl_module_return_html_zip_file(self):
 
         csv_file_path = os.path.join("tests", "test_data", "test_data_csv_1.csv")
 
