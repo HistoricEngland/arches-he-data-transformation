@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
         """Set Visibility of the Bulk Data Manager Plugin to True"""
         plugins = apps.get_model("models", "Plugin")
         for plugin in plugins.objects.all():
-            if plugin.name["en"] == "ETL Manager":
+            if plugin.componentname == "etl-manager":
                 plugin.config["show"] = True
                 plugin.save()
 
@@ -83,9 +83,7 @@ class Migration(migrations.Migration):
         Plugins = apps.get_model("models", "Plugin")
         GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
         UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
-        BulkHTMLEtlModule = ETLModule.objects.get(
-            etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
-        )
+        BulkHTMLEtlModule = ETLModule.objects.get(etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37")
         try:
             BulkDataManagerPlugin = Plugins.objects.get(name="ETL Manager")
         except Plugins.DoesNotExist:
