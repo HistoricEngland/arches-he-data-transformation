@@ -51,7 +51,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         exporter = BulkHTMLFromCSVExporter()
         result = exporter.read(request=request)
 
-        result_resourceids = len(result["data"]["resourceids"])
+        result_resourceids = len(result.get("data", {}).get("resourceids", []))
 
         self.assertTrue(result_resourceids == 2)
 
@@ -118,7 +118,9 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
 
         # Run export task
         # Extract the list of resource IDs
-        resourceids = exporter.read(request=request)["data"]["resourceids"]
+        resourceids = (
+            exporter.read(request=request).get("data", {}).get("resourceids", [])
+        )
         result = exporter.run_export_task(self.admin.id, request.load_id, resourceids)
         self.assertIsInstance(result, dict)
         self.assertTrue(result.get("success"))
