@@ -50,8 +50,10 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
 
         exporter = BulkHTMLFromCSVExporter()
         result = exporter.read(request=request)
-
-        result_resourceids = len(result.get("data", {})["resourceids"])
+        # Ensure parsing succeeded before indexing into the payload
+        self.assertTrue(result["success"])
+        # `resourceids` is a dict with the actual list under `data`
+        result_resourceids = len(result["data"]["resourceids"]["data"])
 
         self.assertTrue(result_resourceids == 2)
 
@@ -88,7 +90,7 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         self.assertIn("resourceids", read_result["data"])
 
         # Extract the list of resource IDs
-        resourceids = read_result["data"]["resourceids"]
+        resourceids = read_result["data"]["resourceids"]["data"]
         graphs_and_resources = exporter.return_graphs_and_resources(resourceids)
 
         self.assertIsInstance(graphs_and_resources, dict)
@@ -117,8 +119,10 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         before_files = set(os.listdir(zip_dir)) if os.path.isdir(zip_dir) else set()
 
         # Run export task
+        read_res = exporter.read(request=request)
+        self.assertTrue(read_res["success"])
         # Extract the list of resource IDs
-        resourceids = exporter.read(request=request).get("data", {})
+        resourceids = read_res["data"]["resourceids"]["data"]
         result = exporter.run_export_task(self.admin.id, request.load_id, resourceids)
         self.assertIsInstance(result, dict)
         self.assertTrue(result.get("success"))
