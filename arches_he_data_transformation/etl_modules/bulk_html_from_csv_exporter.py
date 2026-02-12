@@ -104,10 +104,13 @@ class BulkHTMLFromCSVExporter:
                     for row in reader:
                         value = row.get(resource_id_key)
                         if value:  # Skip empty values
+                            # Normalize: trim whitespace and common stray characters
+                            normalized_value = str(value).strip()
                             try:
-                                uuid.uuid4(value)
-                                resourceid_values.append(value)
-                            except:
+                                # Validate UUID format on normalized value
+                                uuid.UUID(normalized_value)
+                                resourceid_values.append(normalized_value)
+                            except Exception:
                                 return {
                                     "success": False,
                                     "data": f"CSV Column {resource_id_key} contains invalid Resource ID values.",

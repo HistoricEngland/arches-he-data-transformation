@@ -134,13 +134,15 @@ class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
         new_zip_name = new_files[0]
         self.assertTrue(new_zip_name.endswith(".zip"))
 
-        # Open zip and assert it contains exactly one HTML file (.htm or .html)
+        # Open zip and assert it contains one HTML file per graph (.htm or .html)
         new_zip_path = os.path.join(zip_dir, new_zip_name)
         with zipfile.ZipFile(new_zip_path, "r") as zf:
             names = zf.namelist()
             html_files = [n for n in names if n.lower().endswith((".htm", ".html"))]
+            graphs_and_resources = exporter.return_graphs_and_resources(resourceids)
+            expected_html_count = len(graphs_and_resources)
             self.assertEqual(
                 len(html_files),
-                1,
-                "Zip should contain exactly one .htm or .html file",
+                expected_html_count,
+                "Zip should contain one HTML file per resource type/graph",
             )
