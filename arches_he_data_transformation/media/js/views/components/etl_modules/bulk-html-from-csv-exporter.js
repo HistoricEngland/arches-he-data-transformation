@@ -40,6 +40,7 @@ define([
 				// Move view to Task Status if parent provided `state`
 				try { if (ko.isObservable(self.state)) { self.state('status'); } } catch (e) {}
 			}).fail(function(err) {
+				self.loadId = uuid.generate();
 				console.log(err);
 				self.alert(new JsonErrorAlertViewModel('ep-alert-red', err.responseJSON, null, function(){}));
 			}).always(function() {
@@ -53,6 +54,7 @@ define([
 		this.cancelFileImport = function() {
 			try { if (self.dropzone) { self.dropzone.removeAllFiles(true); } } catch (e) {}
 			self.formData = new window.FormData();
+			self.loadId = uuid.generate();
 			self.loading(false);
 		};
 
