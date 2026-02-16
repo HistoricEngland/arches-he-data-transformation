@@ -67,24 +67,13 @@ class BulkHTMLFromCSVExporter:
 
                     if reader.fieldnames:
                         reader.fieldnames = [
-                            (
-                                fieldname.lstrip("\ufeff").strip()
-                                if isinstance(fieldname, str)
-                                else fieldname
-                            )
+                            (fieldname.lstrip("\ufeff").strip() if isinstance(fieldname, str) else fieldname)
                             for fieldname in reader.fieldnames
                         ]
 
                     # Determine which resource id header to use: 'resourceinstanceid' or 'resourceid'
                     csv_fieldnames = (
-                        {
-                            (
-                                fieldname.lower()
-                                if isinstance(fieldname, str)
-                                else fieldname
-                            ): fieldname
-                            for fieldname in reader.fieldnames
-                        }
+                        {(fieldname.lower() if isinstance(fieldname, str) else fieldname): fieldname for fieldname in reader.fieldnames}
                         if reader.fieldnames
                         else {}
                     )
@@ -129,11 +118,7 @@ class BulkHTMLFromCSVExporter:
     def return_graphs_and_resources(self, resourceids):
         graphs_and_resources = {}
         for resourceid_value in resourceids:
-            graph_value = (
-                ResourceInstance.objects.filter(resourceinstanceid=resourceid_value)
-                .values("graph_id")
-                .first()
-            )
+            graph_value = ResourceInstance.objects.filter(resourceinstanceid=resourceid_value).values("graph_id").first()
             graph_id = str(graph_value["graph_id"])
             if graph_id in graphs_and_resources.keys():
                 graphs_and_resources[graph_id].append(resourceid_value)
@@ -151,28 +136,21 @@ class BulkHTMLFromCSVExporter:
             resources = v
             graph = models.GraphModel.objects.get(pk=graph_id)
             html_exporter = ResourceExporter(format="html")
-            html_reports = html_exporter.export(
-                graph_id=graph, resourceinstanceids=resources
-            )
+            html_reports = html_exporter.export(graph_id=graph, resourceinstanceids=resources)
             ret.append(html_reports)
 
         return ret
 
     def read(self, request=None, source=None):
-        resourceids = self.get_resourceid_values(request)
 
         # If CSV parsing returned an error dict, bubble it up
-        if isinstance(resourceids, dict) and resourceids.get("success") is False:
-            return {
-                "success": False,
-                "data": resourceids.get("data"),
-            }
 
-        # Otherwise, return the parsed list of resource ids
-        return {
-            "success": True,
-            "data": {"resourceids": resourceids, "loadid": self.loadid},
-        }
+        resourceids = self.get_resourceid_values(request)
+
+        if resourceids["success"]:
+            resourceids["data"] = {"resourceids": resourceids["data"], "loadid": self.loadid}
+
+        return resourceids
 
     def run_export_task(self, user_id, load_id, resource_ids):
 
@@ -201,21 +179,15 @@ class BulkHTMLFromCSVExporter:
                 ),
             )
 
-        logger.info(
-            f"Generating HTML files for resources; total resources: {len(resource_ids)}"
-        )
+        logger.info(f"Generating HTML files for resources; total resources: {len(resource_ids)}")
         # Generate HTML files for the given resources; returns a list-of-lists
-        html_files_nested = self.return_html_reports_for_resources(
-            graphs_and_resources, len(resource_ids)
-        )
+        html_files_nested = self.return_html_reports_for_resources(graphs_and_resources, len(resource_ids))
         # Flatten into a single list of {'name': ..., 'outputfile': StringIO}
         html_files = [item for sublist in html_files_nested for item in sublist]
 
         # Create a zip stream and save directly to export_deliverables (no SearchExportHistory)
         zip_stream = zip_utils.create_zip_file(html_files, filekey="outputfile")
-        zip_name = (
-            f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
-        )
+        zip_name = f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
         zip_dir = os.path.join(settings.MEDIA_ROOT, "export_deliverables")
         try:
             os.makedirs(zip_dir, exist_ok=True)
@@ -246,30 +218,50 @@ class BulkHTMLFromCSVExporter:
 
         resourceids = self.read(request)
 
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """INSERT INTO load_event (loadid, complete, status, load_details, etl_module_id, load_start_time, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                (
-                    self.loadid,
-                    False,
-                    "validated",
-                    json.dumps(
-                        {
-                            "csv_filename": f"{request.FILES.get('file').name}",
-                            "resourceids_count": len(
-                                resourceids.get("data", {}).get("resourceids", [])
-                            ),
-                        }
-                    ),
-                    self.moduleid,
-                    datetime.now(),
-                    self.userid,
-                ),
+        if resourceids["success"] == False:
+            error_msg = resourceids.get("data") or _(
+                "Failed to read the values in your file. Check your file format and that you have a 'resourceinstanceid' or 'resourceid' column."
             )
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO load_event (loadid, complete, status, error_message, load_details, etl_module_id, load_start_time, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        self.loadid,
+                        True,
+                        "failed",
+                        error_msg,
+                        json.dumps({"error_message": error_msg}),
+                        self.moduleid,
+                        datetime.now(),
+                        self.userid,
+                    ),
+                )
+            return {"success": False, "data": error_msg}
 
-        response = self.run_load_task_async(request, self.loadid)
+        else:
 
-        return response
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO load_event (loadid, complete, status, load_details, etl_module_id, load_start_time, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        self.loadid,
+                        False,
+                        "validated",
+                        json.dumps(
+                            {
+                                "csv_filename": f"{request.FILES.get('file').name}",
+                                "resourceids_count": len(resourceids.get("data", {}).get("resourceids", [])),
+                            }
+                        ),
+                        self.moduleid,
+                        datetime.now(),
+                        self.userid,
+                    ),
+                )
+
+            response = self.run_load_task_async(request, self.loadid)
+
+            return response
 
     @load_data_async
     def run_load_task_async(self, request):
