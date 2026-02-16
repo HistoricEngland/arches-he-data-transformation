@@ -165,8 +165,12 @@ class BulkHTMLFromCSVExporter:
         resourceids = self.get_resourceid_values(request)
 
         if resourceids["success"]:
+            # Shape `resourceids` as an object with nested `data` list to
+            # match test expectations: result["data"]["resourceids"]["data"]
             resourceids["data"] = {
-                "resourceids": resourceids["data"],
+                "resourceids": {
+                    "data": resourceids["data"],
+                },
                 "loadid": self.loadid,
             }
 
@@ -276,8 +280,11 @@ class BulkHTMLFromCSVExporter:
                         json.dumps(
                             {
                                 "csv_filename": f"{request.FILES.get('file').name}",
+                                # Count of resource ids parsed from CSV
                                 "resourceids_count": len(
-                                    resourceids.get("data", {}).get("resourceids", [])
+                                    resourceids.get("data", {})
+                                    .get("resourceids", {})
+                                    .get("data", [])
                                 ),
                             }
                         ),
@@ -296,7 +303,8 @@ class BulkHTMLFromCSVExporter:
 
         file_reader = self.read(request)
         if file_reader["success"] == True:
-            resourceids = file_reader["data"]["resourceids"]
+            # Extract the list of resource IDs from nested structure
+            resourceids = file_reader["data"]["resourceids"]["data"]
             load_id = file_reader["data"]["loadid"]
 
             export_task = proj_tasks.export_bulk_html_report.apply_async(
