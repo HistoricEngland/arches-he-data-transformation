@@ -22,6 +22,9 @@ define([
 		this.loadDetails = params.load_details || ko.observable();
 		this.selectedLoadEvent = params.selectedLoadEvent || ko.observable();
 
+		// Local error message used when detailed load info is unavailable
+		this.errorMessage = '';
+
 		// File + CSV state
 		// (Removed unused: fileInfo, fileAdded, csvFileName, resourceIds)
 
@@ -42,6 +45,13 @@ define([
 			}).fail(function(err) {
 				self.loadId = uuid.generate();
 				console.log(err);
+				// Capture a human-readable error for status view fallback
+				try {
+					const resp = err && err.responseJSON ? err.responseJSON : {};
+					self.errorMessage = resp.message || resp.error || err.statusText || 'Unexpected error during export.';
+				} catch (e) {
+					self.errorMessage = 'Unexpected error during export.';
+				}
 				self.alert(new JsonErrorAlertViewModel('ep-alert-red', err.responseJSON, null, function(){}));
 			}).always(function() {
 				// Reset Task Details
