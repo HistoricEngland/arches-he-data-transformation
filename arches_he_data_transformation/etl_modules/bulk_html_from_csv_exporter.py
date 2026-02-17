@@ -50,11 +50,15 @@ class BulkHTMLFromCSVExporter:
         self.userid = request.user.id if request else None
         self.useremail = request.user.email if request else None
         # Ensure a valid ETL module id is always present
-        self.moduleid = (request.POST.get("module") if request else None) or details.get("etlmoduleid")
+        self.moduleid = (
+            request.POST.get("module") if request else None
+        ) or details.get("etlmoduleid")
         self.loadid = loadid
         self.params = params
 
-    def record_load_event_outcome(self, complete, status, error_msg=None, load_details=None, user_id=None):
+    def record_load_event_outcome(
+        self, complete, status, error_msg=None, load_details=None, user_id=None
+    ):
         """Record outcome of `load_event`.
         Prefer updating existing row; if none exists, insert with safe fallbacks.
         """
@@ -110,13 +114,24 @@ class BulkHTMLFromCSVExporter:
 
                     if reader.fieldnames:
                         reader.fieldnames = [
-                            (fieldname.lstrip("\ufeff").strip() if isinstance(fieldname, str) else fieldname)
+                            (
+                                fieldname.lstrip("\ufeff").strip()
+                                if isinstance(fieldname, str)
+                                else fieldname
+                            )
                             for fieldname in reader.fieldnames
                         ]
 
                     # Determine which resource id header to use: 'resourceinstanceid' or 'resourceid'
                     csv_fieldnames = (
-                        {(fieldname.lower() if isinstance(fieldname, str) else fieldname): fieldname for fieldname in reader.fieldnames}
+                        {
+                            (
+                                fieldname.lower()
+                                if isinstance(fieldname, str)
+                                else fieldname
+                            ): fieldname
+                            for fieldname in reader.fieldnames
+                        }
                         if reader.fieldnames
                         else {}
                     )
@@ -128,7 +143,9 @@ class BulkHTMLFromCSVExporter:
                         resource_id_key = csv_fieldnames["resourceid"]
                     else:
                         error_msg = "Failed to read the values in your file due to incorrect headers.  Check you have a 'resourceinstanceid' or 'resourceid' column."
-                        self.record_load_event_outcome(complete=False, status="failed", error_msg=error_msg)
+                        self.record_load_event_outcome(
+                            complete=False, status="failed", error_msg=error_msg
+                        )
                         return error_response(error_msg)
 
                     # Extract all values from the chosen resource id column
@@ -142,14 +159,16 @@ class BulkHTMLFromCSVExporter:
                                 uuid.UUID(normalized_value)
                                 resourceid_values.append(normalized_value)
                             except Exception:
-                                error_msg = (
-                                    f"CSV Column {resource_id_key} contains invalid Resource ID values. '{value}' is not a valid UUID."
+                                error_msg = f"CSV Column {resource_id_key} contains invalid Resource ID values. '{value}' is not a valid UUID."
+                                self.record_load_event_outcome(
+                                    complete=False, status="failed", error_msg=error_msg
                                 )
-                                self.record_load_event_outcome(complete=False, status="failed", error_msg=error_msg)
                                 return error_response(error_msg)
                     if len(resourceid_values) == 0:
                         error_msg = "No valid Resource ID values found in the CSV file."
-                        self.record_load_event_outcome(complete=False, status="failed", error_msg=error_msg)
+                        self.record_load_event_outcome(
+                            complete=False, status="failed", error_msg=error_msg
+                        )
                         return error_response(error_msg)
 
                     return success_response(resourceid_values)
@@ -159,7 +178,11 @@ class BulkHTMLFromCSVExporter:
     def return_graphs_and_resources(self, resourceids):
         graphs_and_resources = {}
         for resourceid_value in resourceids:
-            graph_value = ResourceInstance.objects.filter(resourceinstanceid=resourceid_value).values("graph_id").first()
+            graph_value = (
+                ResourceInstance.objects.filter(resourceinstanceid=resourceid_value)
+                .values("graph_id")
+                .first()
+            )
             # Skip IDs that do not exist in the database
             if not graph_value:
                 continue
@@ -180,7 +203,9 @@ class BulkHTMLFromCSVExporter:
             resources = v
             graph = models.GraphModel.objects.get(pk=graph_id)
             html_exporter = ResourceExporter(format="html")
-            html_reports = html_exporter.export(graph_id=graph, resourceinstanceids=resources)
+            html_reports = html_exporter.export(
+                graph_id=graph, resourceinstanceids=resources
+            )
             ret.append(html_reports)
 
         return ret
@@ -216,7 +241,9 @@ class BulkHTMLFromCSVExporter:
         for k in graphs_and_resources.keys():
             graph = models.GraphModel.objects.get(pk=k)
             name_obj = graph.name or {}
-            name_lang = name_obj.get(language) if isinstance(name_obj, dict) else str(name_obj)
+            name_lang = (
+                name_obj.get(language) if isinstance(name_obj, dict) else str(name_obj)
+            )
             if name_lang and name_lang not in graph_name_list:
                 graph_name_list.append(name_lang)
 
@@ -238,7 +265,9 @@ class BulkHTMLFromCSVExporter:
 
         # If any IDs are missing, fail early and record detailed message
         if missing_ids:
-            error_msg = _("Some resource IDs were not found in the system: {}").format(", ".join(missing_ids))
+            error_msg = _("Some resource IDs were not found in the system: {}").format(
+                ", ".join(missing_ids)
+            )
             load_details = {
                 "graphs": graph_names,
                 "number_of_resources": len(resource_ids),
@@ -255,15 +284,21 @@ class BulkHTMLFromCSVExporter:
 
             return {"success": False, "data": error_msg}
 
-        logger.info(f"Generating HTML files for resources; total resources: {len(resource_ids)}")
+        logger.info(
+            f"Generating HTML files for resources; total resources: {len(resource_ids)}"
+        )
         # Generate HTML files for the given resources; returns a list-of-lists
-        html_files_nested = self.return_html_reports_for_resources(graphs_and_resources, len(resource_ids))
+        html_files_nested = self.return_html_reports_for_resources(
+            graphs_and_resources, len(resource_ids)
+        )
         # Flatten into a single list of {'name': ..., 'outputfile': StringIO}
         html_files = [item for sublist in html_files_nested for item in sublist]
 
         # Create a zip stream and save directly to export_deliverables (no SearchExportHistory)
         zip_stream = zip_utils.create_zip_file(html_files, filekey="outputfile")
-        zip_name = f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
+        zip_name = (
+            f"{settings.APP_NAME}_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.zip"
+        )
         zip_dir = os.path.join(settings.MEDIA_ROOT, "export_deliverables")
         try:
             os.makedirs(zip_dir, exist_ok=True)
@@ -298,7 +333,9 @@ class BulkHTMLFromCSVExporter:
             error_msg = resourceids.get("data") or _(
                 "Failed to read the values in your file. Check your file format and that you have a 'resourceinstanceid' or 'resourceid' column."
             )
-            self.record_load_event_outcome(complete=True, status="failed", error_msg=error_msg)
+            self.record_load_event_outcome(
+                complete=True, status="failed", error_msg=error_msg
+            )
             return error_response(error_msg)
 
         else:
@@ -314,7 +351,11 @@ class BulkHTMLFromCSVExporter:
                             {
                                 "csv_filename": f"{request.FILES.get('file').name}",
                                 # Count of resource ids parsed from CSV
-                                "resourceids_count": len(resourceids.get("data", {}).get("resourceids", {}).get("data", [])),
+                                "resourceids_count": len(
+                                    resourceids.get("data", {})
+                                    .get("resourceids", {})
+                                    .get("data", [])
+                                ),
                             }
                         ),
                         # Guarantee NOT NULL value here
