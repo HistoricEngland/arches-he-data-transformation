@@ -62,6 +62,17 @@ class BulkHTMLFromCSVExporter:
         """Record outcome of `load_event`.
         Prefer updating existing row; if none exists, insert with safe fallbacks.
         """
+        # If no loadid has been established yet (e.g., during read/validation),
+        # do not write to the database. Simply return so callers can surface the error.
+        if not self.loadid:
+            return
+
+        # Ensure load_details is a dict before serializing
+        if isinstance(load_details, str):
+            try:
+                load_details = json.loads(load_details)
+            except Exception:
+                load_details = {"raw": load_details}
         payload = json.dumps(load_details or {"error_message": error_msg})
         with connection.cursor() as cursor:
             # Try to update existing row first
@@ -385,6 +396,6 @@ class BulkHTMLFromCSVExporter:
                 complete=False,
                 status="failed",
                 error_msg=error_msg,
-                load_details=json.dumps({"error_message": error_msg}),
+                load_details={"error_message": error_msg},
             )
             return error_response(error_msg)
