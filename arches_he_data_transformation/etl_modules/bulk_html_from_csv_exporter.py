@@ -20,6 +20,10 @@ from django.core.files.base import ContentFile
 import arches.app.utils.zip as zip_utils
 
 from django.utils.translation import gettext as _
+from arches_he_data_transformation.utils.responses import (
+    success_response,
+    error_response,
+)
 
 details = {
     "etlmoduleid": "96953941-79b3-440d-9c3c-a4d7a6110a37",
@@ -45,9 +49,41 @@ class BulkHTMLFromCSVExporter:
         self.user = request.user if request else None
         self.userid = request.user.id if request else None
         self.useremail = request.user.email if request else None
-        self.moduleid = request.POST.get("module") if request else None
+        # Ensure a valid ETL module id is always present
+        self.moduleid = (
+            request.POST.get("module") if request else None
+        ) or details.get("etlmoduleid")
         self.loadid = loadid
         self.params = params
+
+    def record_load_event_outcome(
+        self, complete, status, error_msg=None, load_details=None, user_id=None
+    ):
+        """Record outcome of `load_event`.
+        Prefer updating existing row; if none exists, insert with safe fallbacks.
+        """
+        payload = json.dumps(load_details or {"error_message": error_msg})
+        with connection.cursor() as cursor:
+            # Try to update existing row first
+            cursor.execute(
+                """UPDATE load_event SET (complete, status, error_message, load_details, load_end_time) = (%s, %s, %s, %s, %s) WHERE loadid = (%s)""",
+                (complete, status, error_msg, payload, datetime.now(), self.loadid),
+            )
+            if cursor.rowcount == 0:
+                # No existing row; insert a new one with required non-null fields
+                cursor.execute(
+                    """INSERT INTO load_event (loadid, complete, status, error_message, load_details, etl_module_id, load_start_time, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        self.loadid,
+                        complete,
+                        status,
+                        error_msg,
+                        payload,
+                        (self.moduleid or details.get("etlmoduleid")),
+                        datetime.now(),
+                        (user_id if user_id is not None else self.userid),
+                    ),
+                )
 
     def get_resourceid_values(self, request=None):
         """
@@ -95,10 +131,11 @@ class BulkHTMLFromCSVExporter:
                     elif "resourceid" in csv_fieldnames:
                         resource_id_key = csv_fieldnames["resourceid"]
                     else:
-                        return {
-                            "success": False,
-                            "data": "Failed to read the values in your file due to incorrect headers.  Check you have a 'resourceinstanceid' or 'resourceid' column.",
-                        }
+                        error_msg = "Failed to read the values in your file due to incorrect headers.  Check you have a 'resourceinstanceid' or 'resourceid' column."
+                        self.record_load_event_outcome(
+                            complete=False, status="failed", error_msg=error_msg
+                        )
+                        return error_response(error_msg)
 
                     # Extract all values from the chosen resource id column
                     for row in reader:
@@ -111,20 +148,21 @@ class BulkHTMLFromCSVExporter:
                                 uuid.UUID(normalized_value)
                                 resourceid_values.append(normalized_value)
                             except Exception:
-                                return {
-                                    "success": False,
-                                    "data": f"CSV Column {resource_id_key} contains invalid Resource ID values.",
-                                }
+                                error_msg = f"CSV Column {resource_id_key} contains invalid Resource ID values. '{value}' is not a valid UUID."
+                                self.record_load_event_outcome(
+                                    complete=False, status="failed", error_msg=error_msg
+                                )
+                                return error_response(error_msg)
+                    if len(resourceid_values) == 0:
+                        error_msg = "No valid Resource ID values found in the CSV file."
+                        self.record_load_event_outcome(
+                            complete=False, status="failed", error_msg=error_msg
+                        )
+                        return error_response(error_msg)
 
-                    return {
-                        "success": True,
-                        "data": resourceid_values,
-                    }
+                    return success_response(resourceid_values)
         else:
-            return {
-                "success": False,
-                "data": "Invalid file type. Please upload a CSV file.",
-            }
+            return error_response("Invalid file type. Please upload a CSV file.")
 
     def return_graphs_and_resources(self, resourceids):
         graphs_and_resources = {}
@@ -134,6 +172,9 @@ class BulkHTMLFromCSVExporter:
                 .values("graph_id")
                 .first()
             )
+            # Skip IDs that do not exist in the database
+            if not graph_value:
+                continue
             graph_id = str(graph_value["graph_id"])
             if graph_id in graphs_and_resources.keys():
                 graphs_and_resources[graph_id].append(resourceid_value)
@@ -181,11 +222,18 @@ class BulkHTMLFromCSVExporter:
         logger = logging.getLogger(__name__)
 
         graphs_and_resources = self.return_graphs_and_resources(resource_ids)
+        # Detect missing resource IDs (present in CSV but not found in DB)
+        found_ids = [rid for ids in graphs_and_resources.values() for rid in ids]
+        missing_ids = [rid for rid in resource_ids if rid not in found_ids]
         graph_name_list = []
         for k in graphs_and_resources.keys():
             graph = models.GraphModel.objects.get(pk=k)
-            if graph.name["en"] not in graph_name_list:
-                graph_name_list.append(graph.name["en"])
+            name_obj = graph.name or {}
+            name_en = (
+                name_obj.get("en") if isinstance(name_obj, dict) else str(name_obj)
+            )
+            if name_en and name_en not in graph_name_list:
+                graph_name_list.append(name_en)
 
         graph_names = ", ".join(graph_name_list)
 
@@ -202,6 +250,27 @@ class BulkHTMLFromCSVExporter:
                     load_id,
                 ),
             )
+
+        # If any IDs are missing, fail early and record detailed message
+        if missing_ids:
+            error_msg = _("Some resource IDs were not found in the system: {}").format(
+                ", ".join(missing_ids)
+            )
+            load_details = {
+                "graphs": graph_names,
+                "number_of_resources": len(resource_ids),
+                "error_message": error_msg,
+            }
+            # Pass user_id to avoid NOT NULL violations in async context
+            self.record_load_event_outcome(
+                complete=False,
+                status="failed",
+                error_msg=error_msg,
+                load_details=load_details,
+                user_id=user_id,
+            )
+
+            return {"success": False, "data": error_msg}
 
         logger.info(
             f"Generating HTML files for resources; total resources: {len(resource_ids)}"
@@ -252,21 +321,10 @@ class BulkHTMLFromCSVExporter:
             error_msg = resourceids.get("data") or _(
                 "Failed to read the values in your file. Check your file format and that you have a 'resourceinstanceid' or 'resourceid' column."
             )
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """INSERT INTO load_event (loadid, complete, status, error_message, load_details, etl_module_id, load_start_time, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (
-                        self.loadid,
-                        True,
-                        "failed",
-                        error_msg,
-                        json.dumps({"error_message": error_msg}),
-                        self.moduleid,
-                        datetime.now(),
-                        self.userid,
-                    ),
-                )
-            return {"success": False, "data": error_msg}
+            self.record_load_event_outcome(
+                complete=True, status="failed", error_msg=error_msg
+            )
+            return error_response(error_msg)
 
         else:
 
@@ -288,6 +346,7 @@ class BulkHTMLFromCSVExporter:
                                 ),
                             }
                         ),
+                        # Guarantee NOT NULL value here
                         self.moduleid,
                         datetime.now(),
                         self.userid,
@@ -322,17 +381,10 @@ class BulkHTMLFromCSVExporter:
             error_msg = file_reader.get("data") or _(
                 "Failed to read the values in your file.  Check your file format and that you have a 'resourceinstanceid' or 'resourceid' column."
             )
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """UPDATE load_event SET (complete, status, error_message, load_details, load_end_time) = (%s, %s, %s, %s, %s) WHERE  loadid = (%s)""",
-                    (
-                        True,
-                        "failed",
-                        error_msg,
-                        json.dumps({"error_message": error_msg}),
-                        datetime.now(),
-                        self.loadid,
-                    ),
-                )
-
-            return {"success": False, "data": error_msg}
+            self.record_load_event_outcome(
+                complete=False,
+                status="failed",
+                error_msg=error_msg,
+                load_details=json.dumps({"error_message": error_msg}),
+            )
+            return error_response(error_msg)
