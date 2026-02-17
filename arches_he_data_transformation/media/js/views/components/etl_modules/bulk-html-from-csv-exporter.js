@@ -60,14 +60,6 @@ define([
 			});
 		};
 
-		// Cancel upload: clear dropzone and reset formData/loading
-		this.cancelFileImport = function() {
-			try { if (self.dropzone) { self.dropzone.removeAllFiles(true); } } catch (e) {}
-			self.formData = new window.FormData();
-			self.loadId = uuid.generate();
-			self.loading(false);
-		};
-
 		// Helper to send actions to ETL manager (mirrors import-single-csv.js pattern)
 		this.submit = function(action) {
 			self.formData.set('action', action); // 'read' to parse CSV; 'export' to run export
