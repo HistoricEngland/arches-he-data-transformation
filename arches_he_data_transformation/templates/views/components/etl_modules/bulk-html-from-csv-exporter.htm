@@ -48,13 +48,13 @@
 		</h4>
 
 		<!-- Error state -->
-		<!-- ko if: selectedLoadEvent() && selectedLoadEvent().status === 'failed' -->
-		<div class="branch-csv-etl-load-summmary">
+		<!-- ko if: (selectedLoadEvent() && selectedLoadEvent().status === 'failed') || errorMessage -->
+		<div class="branch-csv-etl-load-summmary" role="alert" aria-live="polite">
 			<div class="summary-header">
 				<span>Error</span>
 			</div>
 			<div class="summary-contents" style="padding-bottom: 20px;">
-				<div class="etl-loading-metadata-value" data-bind="text: selectedLoadEvent().error_message || (ko.unwrap(loadDetails) && loadDetails.error_message)"></div>
+				<div class="etl-loading-metadata-value" data-bind="text: (loadDetails && loadDetails.error_message) || errorMessage"></div>
 			</div>
 		</div>
 		<!-- /ko -->
