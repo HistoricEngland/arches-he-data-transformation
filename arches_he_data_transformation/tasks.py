@@ -2,6 +2,7 @@ import importlib
 import os
 import logging
 import shutil
+from datetime import datetime
 from celery import shared_task
 from django.contrib.auth.models import User
 from arches.app.tasks import create_user_task_record
@@ -33,7 +34,41 @@ def export_bulk_html_report(self, user_id, load_id, resourceids):
     except Exception as e:
         logger.error(e)
         load_event = models.LoadEvent.objects.get(loadid=load_id)
+        # Ensure failure is recorded with details and marked complete
         load_event.status = "failed"
+        load_event.complete = True
+        try:
+            raw_err = str(e)
+            # Try to extract a concise message from Postgres error
+            # that embeds our JSON load_details with "error_message": "..."
+            try:
+                import re
+
+                m = re.search(r'"error_message"\s*:\s*"(.*?)"', raw_err, re.DOTALL)
+                clean_err = m.group(1) if m else raw_err
+            except Exception:
+                clean_err = raw_err
+            load_event.error_message = clean_err
+            # Preserve existing details, but include the error message for UI
+            details = load_event.load_details or {}
+            if isinstance(details, str):
+                try:
+                    import json
+
+                    details = json.loads(details)
+                except Exception:
+                    details = {"raw_load_details": details}
+            # Update details dict
+            details["error_message"] = clean_err
+            load_event.load_details = details
+        except Exception:
+            # Best-effort; continue even if details assignment fails
+            pass
+        # Set end time to now
+        try:
+            load_event.load_end_time = datetime.now()
+        except Exception:
+            pass
         load_event.save()
         status = _("Failed")
     finally:
