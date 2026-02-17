@@ -12,9 +12,9 @@ from django.test import TestCase, RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 # These tests can be run from the command line via:
-#     python manage.py test tests.arches_he_data_transformation.test_bulk_html_report_generation --settings="tests.test_settings"
+#     python manage.py test tests.bulk_html_report_tests.test_bulk_html_report_generation --settings="tests.test_settings"
 # or if using Docker:
-#     python manage.py test tests.arches_he_data_transformation.test_bulk_html_report_generation --settings="tests.test_settings_for_docker"
+#     python manage.py test tests.bulk_html_report_tests.test_bulk_html_report_generation --settings="tests.test_settings_for_docker"
 
 
 class TestBulkHTMLReportGeneration(BaseBulkHtmlTestCase):
