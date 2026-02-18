@@ -1,0 +1,20 @@
+{% extends "javascript.htm" %}
+
+{% load static %}
+{% load l10n %}
+{% load i18n %}
+
+{% block arches_translations %}
+{{ block.super }}
+<div
+    class='arches-translations'
+    upload-csv-file='{% trans "Upload .csv File" as uploadCsvFile %} "{{ uploadCsvFile|escapejs }}"'
+    etl-file-upload-bulk-html-message='{% trans "Upload a CSV of resource IDs to export Bulk HTML reports." as etlBulkHtmlFirst %}{% trans "Ensure the column containing the resource IDs is named resourceinstanceid or resourceid." as etlBulkHtmlSecond %} "{{ etlBulkHtmlFirst|escapejs }}\n{{ etlBulkHtmlSecond|escapejs }}"'
+    bulk-html-from-csv-exporter-title='{% trans "Export Bulk HTML Reports" as bulkHtmlFromCsvExporterTitle %} "{{ bulkHtmlFromCsvExporterTitle|escapejs }}"'
+    bulk-html-from-csv-exporter-summary='{% trans "Export Bulk HTML Reports Summary" as bulkHtmlFromCsvExporterSummary %} "{{ bulkHtmlFromCsvExporterSummary|escapejs }}"'
+    download-bulk-html-zip-file='{% trans "Download exported zip file" as downloadBulkHtmlZipFile %} "{{ downloadBulkHtmlZipFile|escapejs }}"'
+    report-resource-type-details='{% trans "Reports have been generated for the following resource types:" as reportResourceTypeDetails %} "{{ reportResourceTypeDetails|escapejs }}"'
+    resource-total-exported='{% trans "Total number of resources in this export:" as resourceTotalExported %} "{{ resourceTotalExported|escapejs }}"'
+    parsed-resource-ids='{% trans "Parsed Resource IDs" as parsedResourceIds %} "{{ parsedResourceIds|escapejs }}"'
+></div>
+{% endblock arches_translations %}

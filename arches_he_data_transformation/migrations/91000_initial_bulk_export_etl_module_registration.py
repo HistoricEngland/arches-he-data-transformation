@@ -2,6 +2,7 @@ from django.db import migrations
 from django.utils.translation import gettext as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
+from django.db import connection
 
 
 class Migration(migrations.Migration):
@@ -53,7 +54,7 @@ class Migration(migrations.Migration):
         """Set Visibility of the Bulk Data Manager Plugin to True"""
         plugins = apps.get_model("models", "Plugin")
         for plugin in plugins.objects.all():
-            if plugin.name["en"] == "Bulk Data Manager":
+            if plugin.componentname == "etl-manager":
                 plugin.config["show"] = True
                 plugin.save()
 
@@ -85,7 +86,7 @@ class Migration(migrations.Migration):
         BulkHTMLEtlModule = ETLModule.objects.get(
             etlmoduleid="96953941-79b3-440d-9c3c-a4d7a6110a37"
         )
-        BulkDataManagerPlugin = Plugins.objects.get(name="Bulk Data Manager")
+        BulkDataManagerPlugin = Plugins.objects.get(componentname="etl-manager")
         resource_exporter_group = Group.objects.get(name="Bulk HTML Exporter")
         admin_user_id = User.objects.get(username="admin").id
         etl_ct_id = ContentType.objects.get_for_model(BulkHTMLEtlModule).id
