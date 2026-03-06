@@ -40,9 +40,9 @@
 	<!-- Task Status: show export details only after successful completion -->
 	<!-- ko if: ko.unwrap(state) === 'status' -->
 	<div class="branch-csv-etl" style="display: grid; row-gap: 2px; height:fit-content; margin-top: 16px;">
-		<h4 class="summary-title" style="padding-bottom: 20px;">
+		<div class="summary-title" style="padding-bottom: 20px;">
 			<span data-bind="text: $root.translations.bulkHtmlFromCsvExporterSummary"></span>
-		</h4>
+		</div>
 
 		<!-- Error state -->
 		<!-- ko if: (selectedLoadEvent() && selectedLoadEvent().status === 'failed') || errorMessage -->
