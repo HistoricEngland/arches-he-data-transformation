@@ -1,0 +1,22 @@
+// Start - CSV upload exporter
+
+.etl-manager-container {
+    .btn.btn-labeled.btn-primary {
+        background-color: #2B4E6D;
+    }
+    .etl-jobs-container {
+        button.btn.btn-success {
+            background: #1C6615;
+        }
+        .etl-job-task-bar {
+            a {
+                color: #315B7D;
+            }
+        }
+    }
+    .etl-loading-metadata-key {
+        color: inherit;
+    }
+}
+
+// End - CSV upload exporter
