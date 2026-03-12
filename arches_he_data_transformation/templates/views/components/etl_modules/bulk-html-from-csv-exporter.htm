@@ -18,7 +18,7 @@
 			<div style="display:flex; flex-direction: column;">
 				<div>
 					<div class="dropzone-photo-upload" style="display:flex; margin-top: 0px;">
-						<div style="border-top: 1px solid #c4c4c4; margin-bottom: 15px;" class="btn btn-primary btn-labeled btn-lg fa fa-file fileinput-button dz-clickable" data-bind="css: uniqueidClass" role="button">
+						<div style="border-top: 1px solid #c4c4c4; margin-bottom: 15px;" class="btn btn-primary btn-labeled btn-lg fa fa-file fileinput-button dz-clickable" data-bind="css: uniqueidClass, onEnterkeyClick, onSpaceClick" role="button" tabindex="0">
 							<span data-bind="text: $root.translations.selectFile"></span>
 						</div>
 						<div style="min-height: 100%;">
