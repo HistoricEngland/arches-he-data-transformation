@@ -46,7 +46,6 @@ jobs:
           secrets: ${{ toJSON(secrets) }}
           project-name: 'arches_he_data_transformation'
           branch-type: 'target'
-          python-version: ${{ matrix.python-version }}
 
   build_feature_branch:
     runs-on: ubuntu-latest
@@ -88,7 +87,6 @@ jobs:
           secrets: ${{ toJSON(secrets) }}
           project-name: 'arches_he_data_transformation'
           branch-type: 'feature'
-          python-version: ${{ matrix.python-version }}
 
   check_frontend_coverage:
     runs-on: ubuntu-latest
