@@ -3,7 +3,8 @@
 <!-- Task Details: show upload UI only in details state -->
 <!-- ko if: ko.unwrap(state) === 'details' -->
 <!-- Upload UI -->
-<div data-bind="dropzone: dropzoneOptions" class="file-select loader-select" style="height: 100%; width: 100%; margin-top: 65px; background: white">
+
+<div data-bind="dropzone: dropzoneOptions" class="CSV-upload-exporter file-select loader-select" style="height: 100%; width: 100%; margin-top: 65px; background: white">
 	<div>
 		<div class="manifest-manager-main-menu-circle loader-button">
 			<span><i style="color: #000" class="fa fa-cloud-upload r-select-icon"></i></span>
@@ -39,7 +40,7 @@
 
 	<!-- Task Status: show export details only after successful completion -->
 	<!-- ko if: ko.unwrap(state) === 'status' -->
-	<div class="branch-csv-etl" style="display: grid; row-gap: 2px; height:fit-content; margin-top: 16px;">
+	<div class="CSV-upload-exporter branch-csv-etl" style="display: grid; row-gap: 2px; height:fit-content; margin-top: 16px;">
 		<div class="summary-title" style="padding-bottom: 20px;">
 			<span data-bind="text: $root.translations.bulkHtmlFromCsvExporterSummary"></span>
 		</div>
