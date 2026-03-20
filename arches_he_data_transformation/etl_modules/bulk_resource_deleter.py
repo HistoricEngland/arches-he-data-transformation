@@ -1,7 +1,3 @@
-
-
-
-
 import csv
 from datetime import datetime
 from datetime import timedelta
@@ -49,7 +45,6 @@ details = {
 
 class BulkResourceDeleter(BaseBulkEditor):
 
-    @staticmethod
     def __init__(self, request=None, loadid=None, transactionid=None, params=None):
         self.request = request
         self.user = request.user if request else None
