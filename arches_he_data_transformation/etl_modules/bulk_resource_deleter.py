@@ -190,7 +190,7 @@ class BulkResourceDeleter(BaseBulkEditor):
 
         try:
             models.EditLog.objects.filter(
-                resourceid=resourceid,
+                resourceinstanceid=resourceid,
                 transactionid=transactionid,
                 edittype="delete",
             ).update(
