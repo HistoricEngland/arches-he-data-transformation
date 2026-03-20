@@ -158,14 +158,14 @@ def export_bulk_html_report(self, user_id, load_id, resourceids):
 
 @shared_task(bind=True)
 def run_bulk_delete_resources(self, user_id, load_id, resourceids, transaction_id=None):
-    from arches_he_data_transformation.etl_modules import bulk_delete_resources
+    from arches_he_data_transformation.etl_modules import bulk_resource_deleter
 
     logger = logging.getLogger(__name__)
 
     status = _("Failed")
 
     try:
-        delete_resources_object = bulk_delete_resources.BulkResourceDeleter(request=None, loadid=load_id, transactionid=transaction_id)
+        delete_resources_object = bulk_resource_deleter.BulkResourceDeleter(request=None, loadid=load_id, transactionid=transaction_id)
 
         delete_resources_object.run_bulk_delete_task(user_id, load_id, resourceids, transaction_id)
 
