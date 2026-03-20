@@ -1,13 +1,11 @@
 # arches-he-data-transformation
 
-> **THIS ARCHES APP US CURRENTLY UNDER DEVELOPMENT AND IS NOT YET READY FOR USE**
-
 An Arches application which contains extensions relating to data transformation for Arches-based projects.  Designed for easy integration with Arches projects (Historic England context).
 
 ## Requirements
 
-- Python 3.10+ (Check the Arches python requirements and match your Python version))
-- Arches >=7.6.0, <7.7.0
+- Python 3.10+ (Check the Arches python requirements and match your Python version)
+- Arches ==7.6.22
 
 ## Contents Overview
 
@@ -77,7 +75,7 @@ arches-he-data-transformation @ git+https://github.com/HistoricEngland/arches-he
 
   ```toml
   dependencies = [
-      "arches>=7.6.0,<7.7.0",
+      "arches==7.6.22",
       "arches-he-data-transformation @ git+https://github.com/HistoricEngland/arches-he-data-transformation.git@release/1.0.0",
   ]
   ```
