@@ -1,16 +1,113 @@
 # arches-he-data-transformation
 
-An Arches application which contains extensions relating to data transformation for Arches-based projects.  Designed for easy integration with Arches projects (Historic England context).
+This is an Arches application developed and maintained by Historic England primarily for our own internal systems. The codebase is published openly in the spirit of transparency and in case it is useful to others in the Arches community.
+
+Please read this document before raising issues or submitting pull requests.
+
+---
+
+## Table of Contents
+- [Requirements](#requirements)
+- [Application Contents Overview](#application-contents-overview)
+- [Project Status & Scope](#project-status--scope)
+- [Reporting Bugs](#reporting-bugs)
+- [Feature Requests](#feature-requests)
+- [Pull Requests](#pull-requests)
+- [Development Setup](#development-setup)
+- [Using This App in Your Arches Project](#using-this-app-in-your-arches-project)
+- [Code Style](#code-style)
+
+---
 
 ## Requirements
 
-- Python 3.10+ (Check the Arches python requirements and match your Python version))
+- Python 3.10+ (Check the Arches python requirements and match your Python version)
 - Arches ==7.6.22
 
-## Contents Overview
+---
+
+## Application Contents Overview
 
 This Arches application contains extensions that allow the following:
+
 - Bulk HTML export using an ETL Module where the input is a CSV file containing resource instance ids in a column with the header 'resourceid' to identify the resources for bulk HTML export.
+
+---
+
+## Project Status & Scope
+
+This repository is **actively developed for Historic England's internal use**. Development priorities and roadmap decisions are driven by our operational needs.
+
+What this means for contributors:
+
+| Contribution type | Status |
+|---|---|
+| Bug reports | ✅ Welcome |
+| Security vulnerability reports | ✅ Please report promptly (see below) |
+| Bug fix PRs | ✅ Considered — see guidance below |
+| Documentation improvements | ✅ Welcome |
+| Feature requests | ⚠️ Unlikely to be prioritised unless aligned with our roadmap |
+| Feature PRs | ⚠️ Please discuss before investing effort — we may not accept them |
+
+We will always acknowledge issues and PRs, but **we cannot guarantee that contributions outside of bug fixes will be merged or actioned**.
+
+---
+
+## Reporting Bugs
+
+If you believe you have found a bug, please open a GitHub Issue and include:
+
+- A clear, descriptive title
+- Steps to reproduce the issue
+- Expected vs actual behaviour
+- Your Arches version, Python version, and any other relevant environment details
+- Any relevant logs or error messages
+
+Please search existing issues before opening a new one.
+
+---
+
+## Security Vulnerabilities
+
+**Please do not report security vulnerabilities via public GitHub Issues.**
+
+Contact the Historic England development team directly at [insert contact email] so we can assess and address the issue before any public disclosure.
+
+---
+
+## Feature Requests
+
+You are welcome to open an issue to suggest a feature, but please understand that:
+
+- Features are prioritised against Historic England's internal roadmap
+- We may close feature requests that are out of scope without implementing them
+- We will try to explain our reasoning when we do so
+
+If you need a feature for your own Arches deployment, forking this repository and adapting it for your needs may be the most practical route.
+
+---
+
+## Pull Requests
+
+We will consider pull requests that fix confirmed bugs. Before submitting:
+
+1. Check that an issue exists (or open one) describing the bug your PR addresses
+2. Fork the repository and create a branch from `main`:
+   ```bash
+   git checkout -b fix/your-descriptive-branch-name
+   ```
+3. Keep the change focused — one bug fix per PR
+4. Ensure existing tests still pass
+5. Describe clearly in the PR what the bug was and how your change fixes it
+
+**We are unlikely to accept PRs that:**
+- Add new features without prior discussion and agreement
+- Make significant refactoring changes
+- Alter behaviour in ways that could affect Historic England's production systems
+
+We reserve the right to decline any PR without detailed explanation, though we will aim to give feedback where possible.
+
+---
 
 ## Installing for Development
 
@@ -121,7 +218,7 @@ python manage.py migrate
 ```
 
 
-## 5. Install and Build Front-End Dependencies
+### 5. Install and Build Front-End Dependencies
 
 From the directory containing your `your_project/package.json`:
 
@@ -138,14 +235,16 @@ npm run build_development
 python manage.py runserver
 ```
 
-## License
+---
 
-This project is licensed under the GNU AGPLv3. See the LICENSE file for details.
+## Code Style
+
+- **Python:** Follow [PEP 8](https://pep8.org/).  Must be formatted using black formatter.
+- **JavaScript / TypeScript:** Follow existing conventions in the codebase.
+- **HTML / Django templates:** Keep templates clean and consistent with existing patterns.  Adhere to WCAG 2.2 AA standard where possible.
+
+Avoid introducing new dependencies without prior discussion.
 
 ---
 
-
-For more information on deploying your Arches project, see the [Arches Deployment Guide](https://arches.readthedocs.io/en/stable/deployment/).
-
-
-
+Thank you for your understanding. If you have questions about whether a contribution would be welcome, feel free to open a discussion issue before investing significant time.
