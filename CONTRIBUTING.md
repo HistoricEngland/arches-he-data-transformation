@@ -63,8 +63,7 @@ Contact customers@historicengland.org.uk and mark the email for the attention of
 You are welcome to open an issue to suggest a feature, but please understand that:
 
 - Features are prioritised against Historic England's internal roadmap.
-- We may close feature requests that are out of scope without implementing them.
-- We will try to explain our reasoning when we do so.
+- We may close feature requests that are out of scope without implementing them.  We will try to explain our reasoning when we do so.
 
 If you need a feature for your own Arches deployment, forking this repository and adapting it for your needs may be the most practical route.
 
