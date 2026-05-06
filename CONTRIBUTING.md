@@ -1,6 +1,6 @@
 # Contributing to arches-he-data-transformation
 
-Arches-he-data-transformation is an [Arches](https://www.archesproject.org/) application developed and maintained by [Historic England](https://www.historicengland.org.uk/) primarily for our own internal systems. The codebase is published openly in the spirit of transparency and in case it is useful to others in the Arches community.
+Arches-he-data-transformation is an [Arches](https://www.archesproject.org/) application developed and maintained by [Historic England](https://historicengland.org.uk/) primarily for our own internal systems. The codebase is published openly in the spirit of transparency and in case it is useful to others in the Arches community.
 
 Please read this document before raising issues or submitting pull requests.
 
