@@ -56,7 +56,7 @@ For development purposes, you can treat this app as a standard Arches project. E
 
   6. Once setup and webpack builds are complete, open a browser and navigate to `http://localhost:8002` or use `act view` in a termainal to open the project in your default browser.
 
-  For more details, see the [arches-containers documentation](../arches-containers/readme.md).
+  For more details, see the [arches-containers documentation](https://github.com/HistoricEngland/arches-containers).
 
 
 ## Using This App in Your Arches Project
