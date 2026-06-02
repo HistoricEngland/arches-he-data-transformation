@@ -48,7 +48,7 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
             this.chosen_card.subscribe(function(card){
                 self.nodes_in_card.removeAll();
                 self.string_nodes_in_card.removeAll();
-                _.each(self.cards_in_graph(),function(available_card){
+                self.cards_in_graph().forEach(function(available_card){
                     if (card === available_card.nodegroup_id){
                         self.sort_nodes(self.graph.nodes)
                         self.graph.nodes.forEach(function(node){
@@ -99,7 +99,7 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
                             }
                         }
                         if(stored_string == null){
-                            _.each(self.nodes_in_card(),function(available_node){
+                            self.nodes_in_card().forEach(function(available_node){
                                 if (available_node.nodeid != self.target_node()){
                                     var invalid_datatypes = ['semantic','geojson-feature-collection','file-list','annotation']
                                     if (!(invalid_datatypes.includes(available_node.datatype))){
