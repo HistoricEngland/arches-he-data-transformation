@@ -258,9 +258,9 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
 
             this.update_config = function(auto_configs){
 
-                var string_value = ko.unwrap(self.string_template);
+                var string_value = ko.unwrap(self.string_template) || "";
                 var regExp = /\<(.*?)\>/g;
-                var matches = string_value.match(regExp);
+                var matches = string_value.match(regExp) || [];
                 var template_nodes = []
                 var graph_nodes = []
 
@@ -336,7 +336,7 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
 
             this.addAutopopulateConfig = function(){
                 if (self.chosen_card && self.target_node && self.string_template){
-                    var auto_configs = ko.unwrap(self.autopopulate_configs)
+                    var auto_configs = ko.unwrap(self.autopopulate_configs) || []
                     var configured_nodes = []
 
                     for (var a = 0; a < auto_configs.length; a++){

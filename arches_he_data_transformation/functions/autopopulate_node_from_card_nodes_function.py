@@ -118,7 +118,17 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
                                 autopopulated_string = autopopulated_string.replace("<%s>" % node_name_from_card, node_value_from_tile)
                             except Exception as e:
                                 logger.error(str(e))
-                    tile.data[node_to_populate] = autopopulated_string
+                    try:
+                        target_node_info = models.Node.objects.get(nodeid=node_to_populate)
+                        if target_node_info.datatype == "string":
+                            target_datatype = DataTypeFactory().get_instance(target_node_info.datatype)
+                            tile.data[node_to_populate] = target_datatype.transform_value_for_tile(
+                                autopopulated_string
+                            )
+                        else:
+                            tile.data[node_to_populate] = autopopulated_string
+                    except Exception:
+                        tile.data[node_to_populate] = autopopulated_string
                     tile.save()
                     return
 
