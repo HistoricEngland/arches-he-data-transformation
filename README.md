@@ -11,6 +11,7 @@ An Arches application which contains extensions relating to data transformation 
 
 This Arches application contains extensions that allow the following:
 - Bulk HTML export using an ETL Module where the input is a CSV file containing resource instance ids in a column with the header 'resourceid' to identify the resources for bulk HTML export.
+- Auto populate node populates a target string node using values from other nodes in the same card, triggered on save, with configurable templates, multiple mappings, and optional overwriting of existing values.
 
 ## Installing for Development
 
