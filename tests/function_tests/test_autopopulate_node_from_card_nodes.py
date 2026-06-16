@@ -94,9 +94,7 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
 
     def setUp(self):
         self.graph = Graph.objects.get(pk=AUTOPOPULATE_TEST_GRAPH_ID)
-        self.resource = Resource(
-            resourceinstanceid=uuid.uuid4(), graph=self.graph
-        )
+        self.resource = Resource(resourceinstanceid=uuid.uuid4(), graph=self.graph)
         self.resource.save()
 
         # A lightweight POST-like request carrying an admin user, as required
@@ -190,9 +188,7 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
         With ``overwrite=True``, an existing target value must be replaced by
         the newly expanded template string.
         """
-        tile = self._make_tile(
-            first_name="Jane", last_name="Doe", full_name="Old Name"
-        )
+        tile = self._make_tile(first_name="Jane", last_name="Doe", full_name="Old Name")
         func = AutopopulateNodeFromCardNodes(config=FUNCTION_CONFIG_OVERWRITE_TRUE)
 
         func.save(tile=tile, request=self.request)
