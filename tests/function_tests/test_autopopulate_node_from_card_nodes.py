@@ -1,12 +1,20 @@
-# These tests can be run from the command line via:
+# Run this file:
 #
 #   python manage.py test tests.function_tests.test_autopopulate_node_from_card_nodes \
 #       --settings="tests.test_settings"
 #
-# or, when using Docker / CI:
+# Run the full function_tests sub-package:
+#
+#   python manage.py test tests.function_tests --settings="tests.test_settings"
+#
+# Docker / CI equivalents – replace test_settings with test_settings_for_docker:
 #
 #   python manage.py test tests.function_tests.test_autopopulate_node_from_card_nodes \
 #       --settings="tests.test_settings_for_docker"
+#
+#   python manage.py test tests.function_tests --settings="tests.test_settings_for_docker"
+#
+# See HeDevUnitTestGuide.md for conventions on naming, fixtures, and base classes.
 
 import uuid
 
@@ -35,6 +43,12 @@ FIRST_NAME_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000004"
 LAST_NAME_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000005"
 FULL_NAME_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000006"
 
+# Second nodegroup – Location Details (also in Autopopulate_Test_Model.json)
+LOCATION_DETAILS_NODEGROUP_ID = "b1c2d3e4-f000-0000-0000-000000000013"
+CITY_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000014"
+COUNTRY_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000015"
+LOCATION_SUMMARY_NODE_ID = "b1c2d3e4-f000-0000-0000-000000000016"
+
 # functionid declared in the details dict of the function module.
 FUNCTION_ID = "184332d6-687d-4bcb-ae41-9aeb467fbdad"
 
@@ -55,6 +69,29 @@ FUNCTION_CONFIG_OVERWRITE_TRUE = {
     "triggering_nodegroups": [PERSON_DETAILS_NODEGROUP_ID],
 }
 
+# Config with two rules: one for each nodegroup, used to test that only the
+# matching rule fires for a given tile's nodegroup.
+FUNCTION_CONFIG_MULTI_RULE = {
+    "autopopulate_configs": [
+        {
+            "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+            "target_node": FULL_NAME_NODE_ID,
+            "string_template": "<First Name> <Last Name>",
+            "overwrite": True,
+        },
+        {
+            "nodegroup": LOCATION_DETAILS_NODEGROUP_ID,
+            "target_node": LOCATION_SUMMARY_NODE_ID,
+            "string_template": "<City>, <Country>",
+            "overwrite": True,
+        },
+    ],
+    "triggering_nodegroups": [
+        PERSON_DETAILS_NODEGROUP_ID,
+        LOCATION_DETAILS_NODEGROUP_ID,
+    ],
+}
+
 # Config used when the target node must NOT be overwritten if it already has a value.
 FUNCTION_CONFIG_OVERWRITE_FALSE = {
     "autopopulate_configs": [
@@ -73,22 +110,29 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
     """
     Integration tests for AutopopulateNodeFromCardNodes.
 
-    NOTE – deviation from the standard function-test pattern in HeDevUnitTestGuide.md:
-    The guide recommends registering the function in ``functions_x_graphs`` inside
-    the fixture and testing via ``Tile.save(request=...)``, which lets Arches dispatch
-    the function automatically.  That pattern cannot be used safely here because
-    ``autopopulate_nodes()`` modifies the *same* tile it is processing and calls
-    ``tile.save()`` on it before returning.  If the function were registered for that
-    nodegroup, the internal ``tile.save()`` would re-trigger ``_getFunctionClassInstances()``,
-    find the function again, and produce infinite recursion (particularly with
-    ``overwrite=True``).  The GeoJSON→BNG example in the guide avoids this by writing
-    to a *different* nodegroup.
+    Follows the conventions in HeDevUnitTestGuide.md ("Functions" section) with
+    one documented deviation:
 
-    To stay safe, these tests call ``func.save()`` directly on an in-memory ``Tile``
-    and assert on ``tile.data`` in memory.  The fixture therefore leaves
-    ``functions_x_graphs`` empty.
+    **Standard pattern** (HeDevUnitTestGuide.md):
+        Register the function in ``functions_x_graphs`` inside the fixture, then
+        call ``tile.save(request=...)`` so Arches dispatches the function
+        automatically.  Query the database to verify side effects.
 
-    Each test creates a fresh Resource in setUp; Django's per-test SAVEPOINT
+    **Why we deviate**:
+        ``autopopulate_nodes()`` modifies the *same* tile it receives and calls
+        ``tile.save()`` on it before returning.  If the function were registered
+        for the same nodegroup, that internal ``tile.save()`` would re-trigger
+        ``_getFunctionClassInstances()``, find the function again, and recurse
+        infinitely – particularly with ``overwrite=True``.  The GeoJSON→BNG
+        example in the guide avoids this because it writes to a *different*
+        nodegroup.
+
+    **What we do instead**:
+        Call ``func.save(tile=tile, request=self.request)`` directly on an
+        in-memory ``Tile`` and assert on ``tile.data``.  The fixture therefore
+        leaves ``functions_x_graphs`` empty.
+
+    Each test creates a fresh Resource in ``setUp``; Django's per-test SAVEPOINT
     rolls it back automatically when the test ends.
     """
 
@@ -130,6 +174,28 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
             sortorder=0,
         )
 
+    def _make_location_tile(self, city=None, country=None, location_summary=None):
+        """
+        Build an in-memory Tile for the Location Details nodegroup.
+
+        String values follow the Arches string-datatype storage format.
+        Pass ``None`` to leave a node without a value.
+        """
+
+        def _str_val(text):
+            return {"en": {"value": text, "direction": "ltr"}} if text else None
+
+        return Tile(
+            nodegroup_id=LOCATION_DETAILS_NODEGROUP_ID,
+            resourceinstance_id=self.resource.resourceinstanceid,
+            data={
+                CITY_NODE_ID: _str_val(city),
+                COUNTRY_NODE_ID: _str_val(country),
+                LOCATION_SUMMARY_NODE_ID: _str_val(location_summary),
+            },
+            sortorder=0,
+        )
+
     def _full_name_text_values(self, tile):
         """
         Extract the plain-text values from the Full Name node's localised dict.
@@ -137,6 +203,17 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
         Returns a list of strings (one per language key that is present).
         """
         raw = tile.data.get(FULL_NAME_NODE_ID)
+        if not isinstance(raw, dict):
+            return []
+        return [v.get("value", "") for v in raw.values() if isinstance(v, dict)]
+
+    def _location_summary_text_values(self, tile):
+        """
+        Extract the plain-text values from the Location Summary node's localised dict.
+
+        Returns a list of strings (one per language key that is present).
+        """
+        raw = tile.data.get(LOCATION_SUMMARY_NODE_ID)
         if not isinstance(raw, dict):
             return []
         return [v.get("value", "") for v in raw.values() if isinstance(v, dict)]
@@ -227,4 +304,54 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
         self.assertTrue(
             any("John" in v for v in values),
             msg=f"Expected 'John' in full-name values; got {values}",
+        )
+
+    # ------------------------------------------------------------------
+    # Multi-rule config tests
+    # ------------------------------------------------------------------
+
+    def test_multi_rule_config_fires_person_rule_for_person_tile(self):
+        """
+        With a two-rule config, saving a Person Details tile must populate
+        Full Name and must leave Location Summary untouched.
+        """
+        tile = self._make_tile(first_name="Alice", last_name="Jones")
+        func = AutopopulateNodeFromCardNodes(config=FUNCTION_CONFIG_MULTI_RULE)
+
+        func.save(tile=tile, request=self.request)
+
+        self.assertIn("Alice Jones", self._full_name_text_values(tile))
+        # Location Summary node is not present on a Person Details tile.
+        self.assertNotIn(LOCATION_SUMMARY_NODE_ID, tile.data)
+
+    def test_multi_rule_config_fires_location_rule_for_location_tile(self):
+        """
+        With a two-rule config, saving a Location Details tile must populate
+        Location Summary and must leave Full Name untouched.
+        """
+        tile = self._make_location_tile(city="London", country="England")
+        func = AutopopulateNodeFromCardNodes(config=FUNCTION_CONFIG_MULTI_RULE)
+
+        func.save(tile=tile, request=self.request)
+
+        self.assertIn("London, England", self._location_summary_text_values(tile))
+        # Full Name node is not present on a Location Details tile.
+        self.assertNotIn(FULL_NAME_NODE_ID, tile.data)
+
+    def test_multi_rule_config_rules_do_not_interfere_with_each_other(self):
+        """
+        With a two-rule config, applying the function to both a Person Details
+        tile and a Location Details tile must populate each target node
+        independently with the correct value from its own rule.
+        """
+        person_tile = self._make_tile(first_name="Bob", last_name="Smith")
+        location_tile = self._make_location_tile(city="York", country="England")
+        func = AutopopulateNodeFromCardNodes(config=FUNCTION_CONFIG_MULTI_RULE)
+
+        func.save(tile=person_tile, request=self.request)
+        func.save(tile=location_tile, request=self.request)
+
+        self.assertIn("Bob Smith", self._full_name_text_values(person_tile))
+        self.assertIn(
+            "York, England", self._location_summary_text_values(location_tile)
         )

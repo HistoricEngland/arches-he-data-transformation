@@ -60,6 +60,56 @@ For development purposes, you can treat this app as a standard Arches project. E
   For more details, see the [arches-containers documentation](https://github.com/HistoricEngland/arches-containers).
 
 
+## Running Tests
+
+> If using arches-containers, run these commands inside the application container.
+
+The test suite uses `arches.test.runner.ArchesTestRunner` (which creates and tears down Elasticsearch indices automatically) and Django's `TestCase` for per-test transaction isolation. Tests are organised into named sub-packages under `tests/` following the conventions described in [HeDevUnitTestGuide.md](HeDevUnitTestGuide.md).
+
+### 1. Configure Test Settings
+
+**Docker / CI (arches-containers)**
+
+Copy the Docker settings template. The environment variables it requires are set automatically by arches-containers:
+
+```bash
+cp tests/test_settings_for_docker.py.template tests/test_settings_for_docker.py
+```
+
+> `tests/test_settings_for_docker.py` is in `.gitignore` and must never be committed.
+
+**Local (non-Docker)**
+
+`tests/test_settings.py` is already configured for a local PostgreSQL instance. Ensure your local database is running and matches the credentials in that file.
+
+### 2. Run the Tests
+
+Run the full test suite:
+
+```bash
+python manage.py test tests --settings="tests.test_settings_for_docker"
+```
+
+Run all tests in a sub-package (e.g. function tests only):
+
+```bash
+python manage.py test tests.function_tests --settings="tests.test_settings_for_docker"
+```
+
+Run a specific test file:
+
+```bash
+python manage.py test tests.function_tests.test_autopopulate_node_from_card_nodes \
+    --settings="tests.test_settings_for_docker"
+```
+
+For local (non-Docker) runs, replace `test_settings_for_docker` with `test_settings`.
+
+### Adding New Tests
+
+See [HeDevUnitTestGuide.md](HeDevUnitTestGuide.md) for conventions on naming, folder structure, base classes, fixture loading, and common pitfalls. The quick-start checklist at the end of that document is the recommended starting point for each new test sub-package.
+
+
 ## Using This App in Your Arches Project
 
 Follow these steps to add `arches-he-data-transformation` to your Arches project:
