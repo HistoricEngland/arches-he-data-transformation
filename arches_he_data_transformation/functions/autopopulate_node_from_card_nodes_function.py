@@ -45,14 +45,12 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
         tile_nodegroup = tile.nodegroup_id
         stored_configs = self.config["autopopulate_configs"]
 
-
         for auto_pop_config in stored_configs:
 
             node_to_populate = ""
             autopopulated_string = ""
             populating_nodes = {}
             write_to_node = False
-
 
             if auto_pop_config["nodegroup"] == tile_nodegroup:
 
@@ -61,15 +59,14 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
                 autopopulate_nodegroup = auto_pop_config["nodegroup"]
                 autopopulate_overwrite = auto_pop_config["overwrite"]
 
-
-                nodes_in_card = models.Node.objects.filter(nodegroup_id=uuid.UUID(autopopulate_nodegroup))
+                nodes_in_card = models.Node.objects.filter(
+                    nodegroup_id=uuid.UUID(autopopulate_nodegroup)
+                )
 
                 for card_node in nodes_in_card:
-                    if card_node.datatype != 'semantic':
+                    if card_node.datatype != "semantic":
                         if card_node.nodeid != node_to_populate:
                             populating_nodes[card_node.nodeid] = card_node.name
-
-
 
                 if node_to_populate != "" and autopopulated_string != "":
 
@@ -78,8 +75,10 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
                     try:
                         if node_to_populate in tile.data:
 
-
-                            if tile.data[node_to_populate] != None and tile.data[node_to_populate] != "":
+                            if (
+                                tile.data[node_to_populate] != None
+                                and tile.data[node_to_populate] != ""
+                            ):
 
                                 if autopopulate_overwrite != False:
                                     write_to_node = True
@@ -95,7 +94,9 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
                             write_to_node = True
 
                     except Exception as e:
-                        logger.error(f"Error autopopulating node '{node_to_populate}' in tile {tile.pk}: {e}")
+                        logger.error(
+                            f"Error autopopulating node '{node_to_populate}' in tile {tile.pk}: {e}"
+                        )
 
                 if write_to_node == True:
                     for n in populating_nodes:
@@ -106,24 +107,44 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
                             if node_id_from_card in data_in_tile:
                                 try:
                                     node_info = models.Node.objects.get(nodeid=n)
-                                    datatype_factory_object = DataTypeFactory().get_instance(node_info.datatype)
-                                    node_object =  models.Node.objects.get(pk=n)
-                                    node_display_value_from_tile = datatype_factory_object.get_display_value(tile,node_object)
+                                    datatype_factory_object = (
+                                        DataTypeFactory().get_instance(
+                                            node_info.datatype
+                                        )
+                                    )
+                                    node_object = models.Node.objects.get(pk=n)
+                                    node_display_value_from_tile = (
+                                        datatype_factory_object.get_display_value(
+                                            tile, node_object
+                                        )
+                                    )
                                     if node_display_value_from_tile != None:
-                                        node_value_from_tile = node_display_value_from_tile
+                                        node_value_from_tile = (
+                                            node_display_value_from_tile
+                                        )
                                 except Exception as e:
-                                    logger.error(f"Error getting display value for node '{n}' in tile {tile.pk}: {e}")
+                                    logger.error(
+                                        f"Error getting display value for node '{n}' in tile {tile.pk}: {e}"
+                                    )
 
                             try:
-                                autopopulated_string = autopopulated_string.replace("<%s>" % node_name_from_card, node_value_from_tile)
+                                autopopulated_string = autopopulated_string.replace(
+                                    "<%s>" % node_name_from_card, node_value_from_tile
+                                )
                             except Exception as e:
                                 logger.error(str(e))
                     try:
-                        target_node_info = models.Node.objects.get(nodeid=node_to_populate)
+                        target_node_info = models.Node.objects.get(
+                            nodeid=node_to_populate
+                        )
                         if target_node_info.datatype == "string":
-                            target_datatype = DataTypeFactory().get_instance(target_node_info.datatype)
-                            tile.data[node_to_populate] = target_datatype.transform_value_for_tile(
-                                autopopulated_string
+                            target_datatype = DataTypeFactory().get_instance(
+                                target_node_info.datatype
+                            )
+                            tile.data[node_to_populate] = (
+                                target_datatype.transform_value_for_tile(
+                                    autopopulated_string
+                                )
                             )
                         else:
                             tile.data[node_to_populate] = autopopulated_string
@@ -138,7 +159,9 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
         raise NotImplementedError
 
     def save(self, tile, request, context=None):
-        self.autopopulate_nodes(tile=tile, request=request, is_function_save_method=True)
+        self.autopopulate_nodes(
+            tile=tile, request=request, is_function_save_method=True
+        )
         return
 
     def post_save(self, *args, **kwargs):
