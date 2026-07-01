@@ -13,8 +13,6 @@
 #       --settings="tests.test_settings_for_docker"
 #
 #   python manage.py test tests.function_tests --settings="tests.test_settings_for_docker"
-#
-# See HeDevUnitTestGuide.md for conventions on naming, fixtures, and base classes.
 
 import uuid
 
@@ -110,10 +108,10 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
     """
     Integration tests for AutopopulateNodeFromCardNodes.
 
-    Follows the conventions in HeDevUnitTestGuide.md ("Functions" section) with
+    Integration tests following standard Arches function-test conventions, with
     one documented deviation:
 
-    **Standard pattern** (HeDevUnitTestGuide.md):
+    **Standard pattern**:
         Register the function in ``functions_x_graphs`` inside the fixture, then
         call ``tile.save(request=...)`` so Arches dispatches the function
         automatically.  Query the database to verify side effects.

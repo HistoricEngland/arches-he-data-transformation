@@ -64,7 +64,7 @@ For development purposes, you can treat this app as a standard Arches project. E
 
 > If using arches-containers, run these commands inside the application container.
 
-The test suite uses `arches.test.runner.ArchesTestRunner` (which creates and tears down Elasticsearch indices automatically) and Django's `TestCase` for per-test transaction isolation. Tests are organised into named sub-packages under `tests/` following the conventions described in [HeDevUnitTestGuide.md](HeDevUnitTestGuide.md).
+The test suite uses `arches.test.runner.ArchesTestRunner` (which creates and tears down Elasticsearch indices automatically) and Django's `TestCase` for per-test transaction isolation. Tests are organised into named sub-packages under `tests/`, each containing a `base_test.py` with shared setup and one or more `test_<feature>.py` files.
 
 ### 1. Configure Test Settings
 
@@ -107,7 +107,7 @@ For local (non-Docker) runs, replace `test_settings_for_docker` with `test_setti
 
 ### Adding New Tests
 
-See [HeDevUnitTestGuide.md](HeDevUnitTestGuide.md) for conventions on naming, folder structure, base classes, fixture loading, and common pitfalls. The quick-start checklist at the end of that document is the recommended starting point for each new test sub-package.
+Follow the existing sub-package structure under `tests/`: create a named sub-package (e.g. `function_tests/`), add an `__init__.py`, write a `base_test.py` inheriting from `django.test.TestCase` with `setUpTestData` for shared fixture loading, and add `test_<feature>.py` files inheriting from that base class.
 
 
 ## Using This App in Your Arches Project
