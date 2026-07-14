@@ -27,10 +27,10 @@ For development purposes, you can treat this app as a standard Arches project. E
 
 - **For development using included arches-container configuration:**
   
-  Please ensure that you clone the arches-he-sysref-funcs repository into a directory that uses underscores instead of hyphens, as the arches-containers configuration expects this format. For example, clone it to `arches_he_data_transformation`.
+  Please ensure that you clone the arches-he-data-transformation repository into a directory that uses underscores instead of hyphens, as the arches-containers configuration expects this format. For example, clone it to `arches_he_data_transformation`.
 
   ```bash
-  git clone https://github.com/HistoricEngland/arches-he-data-transformations.git arches_he_data_transformation
+  git clone https://github.com/HistoricEngland/arches-he-data-transformation.git arches_he_data_transformation
   ```
 
   This repository includes an `arches-containers` project configuration, so you can import, activate, and start the system as follows:
@@ -55,7 +55,7 @@ For development purposes, you can treat this app as a standard Arches project. E
      act up
      ```
 
-  6. Once setup and webpack builds are complete, open a browser and navigate to `http://localhost:8002` or use `act view` in a termainal to open the project in your default browser.
+  6. Once setup and webpack builds are complete, open a browser and navigate to `http://localhost:8002` or use `act view` in a terminal to open the project in your default browser.
 
   For more details, see the [arches-containers documentation](https://github.com/HistoricEngland/arches-containers).
 
