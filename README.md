@@ -68,7 +68,7 @@ Follow these steps to add `arches-he-data-transformation` to your Arches project
   Add the following to your `pyproject.toml` dependencies (in the `[project]` section):
 
   ```toml
-arches-he-data-transformation==1.0.1
+arches-he-data-transformation==1.0.2
   ```
 
   Example:
@@ -76,7 +76,7 @@ arches-he-data-transformation==1.0.1
   ```toml
   dependencies = [
       "arches==7.6.22",
-      "arches-he-data-transformation==1.0.1",
+      "arches-he-data-transformation==1.0.2",
   ]
   ```
 
