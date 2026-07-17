@@ -5,7 +5,7 @@ An Arches application which contains extensions relating to data transformation 
 ## Requirements
 
 - Python 3.10+ (Check the Arches python requirements and match your Python version)
-- Arches ==7.6.22
+- Arches 7.6
 
 ## Contents Overview
 
@@ -68,7 +68,7 @@ Follow these steps to add `arches-he-data-transformation` to your Arches project
   Add the following to your `pyproject.toml` dependencies (in the `[project]` section):
 
   ```toml
-arches-he-data-transformation @ git+https://github.com/HistoricEngland/arches-he-data-transformation.git@release/1.0.0
+arches-he-data-transformation==1.1.0
   ```
 
   Example:
@@ -76,7 +76,7 @@ arches-he-data-transformation @ git+https://github.com/HistoricEngland/arches-he
   ```toml
   dependencies = [
       "arches==7.6.22",
-      "arches-he-data-transformation @ git+https://github.com/HistoricEngland/arches-he-data-transformation.git@release/1.0.0",
+      "arches-he-data-transformation==1.1.0",
   ]
   ```
 
