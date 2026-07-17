@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "arches-he-data-transformation"
 description = "An Arches extension app providing additional data transformation functionality for Arches-based projects. Designed for easy integration with Historic England's Arches projects."
 readme = "README.md"
-version = "1.0.1"
+version = "1.0.2"
 license = {text = "GNU AGPL3"}
 authors = []
 maintainers = [{name = "Historic England", email = "donotreply@historicengland.org.uk"}]
