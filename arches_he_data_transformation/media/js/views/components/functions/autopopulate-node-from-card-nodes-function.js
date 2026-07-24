@@ -77,6 +77,16 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
             }
 
 
+            this.getNodeNameById = function(nodeid){
+                for (var i = 0; i < self.graph.nodes.length; i++){
+                    if (self.graph.nodes[i].nodeid === nodeid){
+                        return self.graph.nodes[i].name;
+                    }
+                }
+                return null;
+            }
+
+
             this.target_node.subscribe(function(){
                 //
             },this);
@@ -337,6 +347,60 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
             this.addAutopopulateConfig = function(){
                 if (self.chosen_card && self.target_node && self.string_template){
                     var auto_configs = ko.unwrap(self.autopopulate_configs) || []
+                    var card_nodegroup = ko.unwrap(self.chosen_card)
+                    var target_node_id = ko.unwrap(self.target_node)
+                    var template_value = (ko.unwrap(self.string_template) || '').trim()
+
+                    if (!card_nodegroup || !target_node_id || !template_value){
+                        self.alert(new AlertViewModel(
+                            'ep-alert-red',
+                            'Validation Error',
+                            'Configuration is incomplete. Please choose a card, choose a node, and provide a template.',
+                            null,
+                            null)
+                        );
+                        return;
+                    }
+
+                    var target_node_name = self.getNodeNameById(target_node_id)
+                    for (var e = 0; e < auto_configs.length; e++){
+                        var existing_config = auto_configs[e]
+                        var existing_nodegroup = ko.unwrap(existing_config.nodegroup)
+                        var existing_target_id = ko.unwrap(existing_config.target_node)
+
+                        if (existing_nodegroup != card_nodegroup || existing_target_id == target_node_id){
+                            continue;
+                        }
+
+                        var existing_target_name = self.getNodeNameById(existing_target_id)
+                        if (!existing_target_name){
+                            continue;
+                        }
+
+                        if (template_value.indexOf('<' + existing_target_name + '>') !== -1){
+                            self.alert(new AlertViewModel(
+                                'ep-alert-red',
+                                'Validation Error',
+                                'Circular Dependency risk: Template cannot reference auto-populated node ' + existing_target_name + ' on the same card.',
+                                null,
+                                null)
+                            );
+                            return;
+                        }
+
+                        var existing_template = (ko.unwrap(existing_config.string_template) || '').trim()
+                        if (target_node_name && existing_template.indexOf('<' + target_node_name + '>') !== -1){
+                            self.alert(new AlertViewModel(
+                                'ep-alert-red',
+                                'Validation Error',
+                                'Circular Dependency risk: Target node ' + target_node_name + ' is already referenced in template for auto-populated node ' + existing_target_name + ' on the same card.',
+                                null,
+                                null)
+                            );
+                            return;
+                        }
+                    }
+
                     var configured_nodes = []
 
                     for (var a = 0; a < auto_configs.length; a++){
