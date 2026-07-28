@@ -180,7 +180,7 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
         if not isinstance(autopopulate_configs, list):
             raise ValueError("autopopulate_configs must be a list.")
 
-        normalized_configs = []
+        seen_nodegroups = set()
         for index, entry in enumerate(autopopulate_configs):
             if not isinstance(entry, dict):
                 raise ValueError(f"Config at index {index} must be an object.")
@@ -188,45 +188,16 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
             nodegroup = str(entry.get("nodegroup") or "").strip()
             target_node = str(entry.get("target_node") or "").strip()
             string_template = entry.get("string_template")
-            string_template = string_template.strip() if isinstance(string_template, str) else ""
+            has_template_content = isinstance(string_template, str) and any(
+                not char.isspace() for char in string_template
+            )
 
-            if not nodegroup or not target_node or not string_template:
+            if not nodegroup or not target_node or not has_template_content:
                 raise ValueError(
                     f"Config at index {index} is incomplete. nodegroup, target_node, and string_template are required."
                 )
 
-            normalized_configs.append(
-                {
-                    "nodegroup": nodegroup,
-                    "target_node": target_node,
-                    "string_template": string_template,
-                    "overwrite": bool(entry.get("overwrite", False)),
-                }
-            )
+            if nodegroup in seen_nodegroups:
+                raise ValueError("Only one auto-populate rule is allowed per card.")
 
-        target_ids = [cfg["target_node"] for cfg in normalized_configs]
-        node_name_by_id = {}
-        for node in models.Node.objects.filter(nodeid__in=target_ids):
-            node_name_by_id[str(node.nodeid)] = node.name
-
-        for cfg in normalized_configs:
-            for other_cfg in normalized_configs:
-                if other_cfg["nodegroup"] != cfg["nodegroup"]:
-                    continue
-                if other_cfg["target_node"] == cfg["target_node"]:
-                    continue
-
-                other_target_name = node_name_by_id.get(other_cfg["target_node"])
-                if not other_target_name:
-                    continue
-
-                if f"<{other_target_name}>" in cfg["string_template"]:
-                    raise ValueError(
-                        f"Circular Dependency risk: Template cannot reference auto-populated node {other_target_name} on the same card."
-                    )
-
-        tile.config = {
-            "autopopulate_configs": normalized_configs,
-            "triggering_nodegroups": sorted({cfg["nodegroup"] for cfg in normalized_configs}),
-        }
-        tile.save(update_fields=["config"])
+            seen_nodegroups.add(nodegroup)
