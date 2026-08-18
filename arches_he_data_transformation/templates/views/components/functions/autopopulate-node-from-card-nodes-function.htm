@@ -26,9 +26,11 @@
     <!-- /ko -->
 
 
-<div>
+
 
   <div class="row widget-container">
+    <div>
+    <h4 class="ep-form-section-header" data-bind="text: $root.translations.createEditConfigurationTitle"></h4>
 
     <div>
         <div class="form-group">
@@ -41,7 +43,7 @@
         </div>
         <div class="form-group">
             <label class="control-label widget-input-label" for="fnc_ap_nodename"><span data-bind="text: $root.translations.nodesToBuildValue"></span></label>
-            <input id="fnc_ap_nodename" placeholder="{% trans 'Use bracketed node names like this: <node name>' %}" aria-label="{% trans 'Use bracketed node names like this: <node name>' %}" class="form-control input-lg widget-input" data-bind="value: string_template_calc">
+            <input id="fnc_ap_nodename" class="form-control input-lg widget-input" data-bind="attr: {placeholder: $root.translations.stringTemplatePlaceholder, 'aria-label': $root.translations.stringTemplatePlaceholder}, value: string_template_calc">
         </div>
         <div class="form-group">
             <span id="fnc_ap_overwrite_label" class="control-label widget-input-label"><span data-bind="text: $root.translations.overwriteExistingValuesOnSave"></span></span>
@@ -54,15 +56,19 @@
             <button class="btn btn-primary" data-bind="click: trigger_string_template_reset"><span data-bind="text: $root.translations.resetStringTemplate"></span></button>
             <button class="btn btn-primary" data-bind="click: clear_configuration_options"><span data-bind="text: $root.translations.clearCurrentConfiguration"></span></button>
         </div>
+        </div>
+
+        <div class="row widget-container">
+            <h4 class="ep-form-section-header" data-bind="text: $root.translations.configurationsSectionTitle"></h4>
 
         <table class="table table-striped table-bordered dataTable">
-            <caption class="sr-only">{% trans "List of auto population configurations" %}</caption>
+            <caption class="sr-only" data-bind="text: $root.translations.configurationsTableCaption"></caption>
             <thead >
                 <tr>
                     <th width="15%"><span data-bind="text: $root.translations.cardContainingNodesName"></span></th>
                     <th width="15%"><span data-bind="text: $root.translations.nodeToPopulate"></span></th>
                     <th width="45%"><span data-bind="text: $root.translations.templateOfPopulatingNodes"></span></th>
-                    <th width="45%"><span data-bind="text: $root.translations.overwriteSavedValue"></span></th>
+                    <th width="45%"><span data-bind="text: $root.translations.overwriteExistingValuesOnSave"></span></th>
                     <th width="7%" style="text-align:center"><span data-bind="text: $root.translations.delete"></span></th>
                     <th width="7%" style="text-align:center"><span data-bind="text: $root.translations.selectForUpdate"></span></th>
                 </tr>
@@ -89,8 +95,43 @@
             </tbody>
         </table>
 
-
-
-
+        </div>
+    </div>
   </div>
+
+
+
+<div class="ep-help-content">
+    <h4 class="ep-form-section-header" data-bind="text: $root.translations.helpSectionTitle"></h4>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-overview" aria-expanded="true" aria-controls="help-overview" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpOverviewTitle"></span> <i class="fa fa-chevron-down" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-overview" class="ep-help-topic-content collapse in">
+          <div data-bind="html: $root.translations.helpOverview"></div>
+          <hr>
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-defining" aria-expanded="false" aria-controls="help-defining" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpDefiningTitle"></span> <i class="fa fa-chevron-right" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-defining" class="ep-help-topic-content collapse">
+            <p data-bind="html: $root.translations.helpDefiningCard"></p>
+            <p data-bind="html: $root.translations.helpDefiningNode"></p>
+            <p data-bind="html: $root.translations.helpDefiningSourceFields"></p>
+            <p data-bind="html: $root.translations.helpDefiningExample"></p>
+            <p data-bind="html: $root.translations.helpDefiningReplace"></p>
+            <hr>
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-managing" aria-expanded="false" aria-controls="help-managing" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpManagingTitle"></span> <i class="fa fa-chevron-right" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-managing" class="ep-help-topic-content collapse">
+            <p data-bind="html: $root.translations.helpManagingList"></p>
+            <p data-bind="html: $root.translations.helpManagingEdit"></p>
+        </div>
+    </div>
 </div>
