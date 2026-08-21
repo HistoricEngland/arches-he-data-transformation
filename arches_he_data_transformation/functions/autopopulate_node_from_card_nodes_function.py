@@ -174,4 +174,30 @@ class AutopopulateNodeFromCardNodes(BaseFunction):
         raise NotImplementedError
 
     def after_function_save(self, tile, request):
-        raise NotImplementedError
+        current_config = tile.config if isinstance(tile.config, dict) else {}
+        autopopulate_configs = current_config.get("autopopulate_configs") or []
+
+        if not isinstance(autopopulate_configs, list):
+            raise ValueError("autopopulate_configs must be a list.")
+
+        seen_nodegroups = set()
+        for index, entry in enumerate(autopopulate_configs):
+            if not isinstance(entry, dict):
+                raise ValueError(f"Config at index {index} must be an object.")
+
+            nodegroup = str(entry.get("nodegroup") or "").strip()
+            target_node = str(entry.get("target_node") or "").strip()
+            string_template = entry.get("string_template")
+            has_template_content = isinstance(string_template, str) and any(
+                not char.isspace() for char in string_template
+            )
+
+            if not nodegroup or not target_node or not has_template_content:
+                raise ValueError(
+                    f"Config at index {index} is incomplete. nodegroup, target_node, and string_template are required."
+                )
+
+            if nodegroup in seen_nodegroups:
+                raise ValueError("Only one auto-populate rule is allowed per card.")
+
+            seen_nodegroups.add(nodegroup)
