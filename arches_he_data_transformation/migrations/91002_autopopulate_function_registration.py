@@ -25,11 +25,11 @@ class Migration(migrations.Migration):
         Function.objects.update_or_create(
             functionid="184332d6-687d-4bcb-ae41-9aeb467fbdad",
             defaults={
-                "name": "Auto-populate Node From Card Nodes",
+                "name": "Automatically Fill a Field Using Other Fields",
                 "functiontype": "node",
                 "description": (
-                    "Auto-populates a Node in a Card with the values from other "
-                    "Nodes within that Card"
+                    "Automatically fills a Field (Node) in a Card with the values from other "
+                    "Fields within that Card"
                 ),
                 "defaultconfig": {
                     "autopopulate_configs": [],

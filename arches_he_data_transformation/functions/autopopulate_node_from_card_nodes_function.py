@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 details = {
-    "name": "Auto-populate Node From Card Nodes",
+    "name": "Automatically Fill a Field Using Other Fields",
     "type": "node",
-    "description": "Auto-populates a Node in a Card with the values from other Nodes within that Card",
+    "description": "Automatically fills a Field (Node) in a Card with the values from other Fields within that Card",
     "defaultconfig": {"autopopulate_configs": [], "triggering_nodegroups": []},
     "classname": "AutopopulateNodeFromCardNodes",
     "component": "views/components/functions/autopopulate-node-from-card-nodes-function",

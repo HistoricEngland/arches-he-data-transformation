@@ -3,21 +3,21 @@
 
     <!-- ko if: alert() -->
     <div>
-        <div data-bind="visible: alert().active" style="display: none ; height: 100px;" class="relative">
+        <div data-bind="visible: alert().active" style="display: none ; height: 100px;" class="relative" role="alert" aria-live="assertive">
             <div id="card-alert-panel" data-bind="css: 'ep-form-alert ' + (alert() ? alert().type() : '')">
                 <h4 class="ep-form-alert-title" data-bind="text: alert().title"></h4>
                 <p class="ep-form-alert-text" data-bind="html: alert().text"></p>
 
                 <div class="ep-form-alert-default-dismiss">
-                    <i class="fa fa-times-circle" data-bind="click: alert().close" tabindex="0" aria-label="Close message" onkeypress="$(this).trigger('click');"></i>
+                    <button class="fa fa-times-circle ep-form-alert-close-btn" data-bind="click: alert().close" aria-label="{% trans 'Close message' %}"></button>
                 </div>
 
                 <div class="ep-form-alert-buttons">
                     <!-- ko if: alert().cancel -->
-                    <button class="btn btn-sm btn-danger btn-labeled fa fa-times" data-bind="click: alert().cancel">{% trans "Cancel" %}</button>
+                    <button class="btn btn-sm btn-danger btn-labeled" data-bind="click: alert().cancel"><i class="fa fa-times" aria-hidden="true"></i> {% trans "Cancel" %}</button>
                     <!-- /ko -->
                     <!-- ko if: alert().ok -->
-                    <button class="btn btn-sm btn-primary btn-labeled fa fa-check" data-bind="click: alert().ok">{% trans "OK" %}</button>
+                    <button class="btn btn-sm btn-primary btn-labeled" data-bind="click: alert().ok"><i class="fa fa-check" aria-hidden="true"></i> {% trans "OK" %}</button>
                     <!-- /ko -->
                 </div>
             </div>
@@ -26,44 +26,51 @@
     <!-- /ko -->
 
 
-<div>
+
 
   <div class="row widget-container">
+    <div>
+    <h4 class="ep-form-section-header" data-bind="text: $root.translations.createEditConfigurationTitle"></h4>
 
     <div>
         <div class="form-group">
-            <label class="control-label widget-input-label" for="fnc_ap_choosecard">Choose a card</label>
+            <label class="control-label widget-input-label" for="fnc_ap_choosecard"><span data-bind="text: $root.translations.chooseCard"></span></label>
             <select id="fnc_ap_choosecard" data-bind="chosen: {width: '100%', disable_search_threshold: 15}, value: chosen_card, options: cards_in_graph, optionsText: 'name', optionsValue: 'nodegroup_id', valueAllowUnset: true"></select>
         </div>
         <div class="form-group">
-            <label class="control-label widget-input-label" for="target_node">Choose a node</label>
+            <label class="control-label widget-input-label" for="target_node"><span data-bind="text: $root.translations.chooseNode"></span></label>
             <select id="target_node" data-bind="chosen: {width: '100%', disable_search_threshold: 15}, value: target_node, options: string_nodes_in_card, optionsText: 'name', optionsValue: 'nodeid', valueAllowUnset: true"></select>
         </div>
         <div class="form-group">
-            <label class="control-label widget-input-label" for="fnc_ap_nodename">Name of node</label>
-            <input id="fnc_ap_nodename" placeholder="{% trans 'Use bracketed node names like this: <node name>' %}" aria-label="{% trans 'Use bracketed node names like this: <node name>' %}" class="form-control input-lg widget-input" data-bind="value: string_template_calc">
+            <label class="control-label widget-input-label" for="fnc_ap_nodename"><span data-bind="text: $root.translations.nodesToBuildValue"></span></label>
+            <input id="fnc_ap_nodename" class="form-control input-lg widget-input" data-bind="attr: {placeholder: $root.translations.stringTemplatePlaceholder, 'aria-label': $root.translations.stringTemplatePlaceholder}, value: string_template_calc">
         </div>
         <div class="form-group">
-            <label class="control-label widget-input-label">Overwrite existing values on save</label>
-            <span tabindex="0" class="switch switch-small arches-switch on" data-bind="css: {'on': overwrite()}, click: function(){overwrite(!overwrite())}" onkeypress="$(this).trigger('click');">
+            <span id="fnc_ap_overwrite_label" class="control-label widget-input-label"><span data-bind="text: $root.translations.overwriteExistingValuesOnSave"></span></span>
+            <span aria-labelledby="fnc_ap_overwrite_label" tabindex="0" role="switch" class="switch switch-small arches-switch on" data-bind="css: {'on': overwrite()}, click: function(){overwrite(!overwrite())}, attr: {'aria-checked': overwrite() ? 'true' : 'false'}, event: {keydown: function(data, event){ if(event.key==='Enter'||event.key===' '){overwrite(!overwrite());event.preventDefault();} return true; }}">
                 <small></small>
             </span>
         </div>
         <div class="form-group">
-            <button class="btn btn-primary" data-bind="click: addAutopopulateConfig">Add/Amend Current Configuration</button>
-            <button class="btn btn-primary" data-bind="click: trigger_string_template_reset">Reset String Template</button>
-            <button class="btn btn-primary" data-bind="click: clear_configuration_options">Clear Current Configuration</button>
+            <button class="btn btn-primary" data-bind="click: addAutopopulateConfig"><span data-bind="text: $root.translations.addAmendCurrentConfiguration"></span></button>
+            <button class="btn btn-primary" data-bind="click: trigger_string_template_reset"><span data-bind="text: $root.translations.resetStringTemplate"></span></button>
+            <button class="btn btn-primary" data-bind="click: clear_configuration_options"><span data-bind="text: $root.translations.clearCurrentConfiguration"></span></button>
+        </div>
         </div>
 
-        <table class="table table-striped table-bordered dataTable" summary="List of auto population configurations">
+        <div class="row widget-container">
+            <h4 class="ep-form-section-header" data-bind="text: $root.translations.configurationsSectionTitle"></h4>
+
+        <table class="table table-striped table-bordered dataTable">
+            <caption class="sr-only" data-bind="text: $root.translations.configurationsTableCaption"></caption>
             <thead >
                 <tr>
-                    <th width="15%">Card</th>
-                    <th width="15%">Node to Populate</th>
-                    <th width="45%">String Template</th>
-                    <th width="45%">Overwrite Saved Value</th>
-                    <th width="7%" style="text-align:center">Delete</th>
-                    <th width="7%" style="text-align:center">Select for Update</th>
+                    <th width="15%"><span data-bind="text: $root.translations.cardContainingNodesName"></span></th>
+                    <th width="15%"><span data-bind="text: $root.translations.nodeToPopulate"></span></th>
+                    <th width="45%"><span data-bind="text: $root.translations.templateOfPopulatingNodes"></span></th>
+                    <th width="45%"><span data-bind="text: $root.translations.overwriteExistingValuesOnSave"></span></th>
+                    <th width="7%" style="text-align:center"><span data-bind="text: $root.translations.delete"></span></th>
+                    <th width="7%" style="text-align:center"><span data-bind="text: $root.translations.selectForUpdate"></span></th>
                 </tr>
             </thead>
             <tbody>
@@ -75,12 +82,12 @@
                         <td><span data-bind="text: overwrite_value"></span></td>
                         <td style="text-align:center">
                             <span class="rp-edit-buttons" style="margin-right:0%">
-                                <i tabindex="0" class="fa fa-trash"data-bind="click: $parent.deleteAutopopulateConfig" onkeypress="$(this).trigger('click');"></i>
+                                <button class="fa fa-trash btn-icon" role="button" aria-label="{% trans 'Delete configuration' %}" data-bind="click: $parent.deleteAutopopulateConfig"></button>
                             </span>
                         </td>
                         <td style="text-align:center">
                             <span class="rp-edit-buttons" style="margin-right:0%">
-                                <i tabindex="0" class="fa fa-pencil" data-bind="click: $parent.updateAutopopulateConfig" onkeypress="$(this).trigger('click');"></i>
+                                <button class="fa fa-pencil btn-icon" role="button" aria-label="{% trans 'Edit configuration' %}" data-bind="click: $parent.updateAutopopulateConfig"></button>
                             </span>
                         </td>
                     </tr>
@@ -88,8 +95,43 @@
             </tbody>
         </table>
 
-
-
-
+        </div>
+    </div>
   </div>
+
+
+
+<div class="ep-help-content">
+    <h4 class="ep-form-section-header" data-bind="text: $root.translations.helpSectionTitle"></h4>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-overview" aria-expanded="true" aria-controls="help-overview" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpOverviewTitle"></span> <i class="fa fa-chevron-down" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-overview" class="ep-help-topic-content collapse in">
+          <div data-bind="html: $root.translations.helpOverview"></div>
+          <hr>
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-defining" aria-expanded="false" aria-controls="help-defining" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpDefiningTitle"></span> <i class="fa fa-chevron-right" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-defining" class="ep-help-topic-content collapse">
+            <p data-bind="html: $root.translations.helpDefiningCard"></p>
+            <p data-bind="html: $root.translations.helpDefiningNode"></p>
+            <p data-bind="html: $root.translations.helpDefiningSourceFields"></p>
+            <p data-bind="html: $root.translations.helpDefiningExample"></p>
+            <p data-bind="html: $root.translations.helpDefiningReplace"></p>
+            <hr>
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#help-managing" aria-expanded="false" aria-controls="help-managing" style="padding:0; text-decoration:none; color:inherit;">
+            <h5><span data-bind="text: $root.translations.helpManagingTitle"></span> <i class="fa fa-chevron-right" aria-hidden="true"></i></h5>
+        </button>
+        <div id="help-managing" class="ep-help-topic-content collapse">
+            <p data-bind="html: $root.translations.helpManagingList"></p>
+            <p data-bind="html: $root.translations.helpManagingEdit"></p>
+        </div>
+    </div>
 </div>

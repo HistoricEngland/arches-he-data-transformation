@@ -12,3 +12,17 @@
 }
 
 // End - CSV upload exporter
+
+//Start - Autopopulate node from card nodes function
+
+table.table.table-striped.table-bordered.dataTable thead th {
+    vertical-align: top;
+    text-align: center;
+}
+
+// fix flex children exceeding bounded height, preventing overflow-y: auto from scrolling
+.content-panel > .flex {
+    min-height: 0;
+}
+
+// End - Autopopulate node from card nodes function
