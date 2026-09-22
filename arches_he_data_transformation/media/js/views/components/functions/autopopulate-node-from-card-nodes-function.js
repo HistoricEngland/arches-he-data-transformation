@@ -337,6 +337,39 @@ function (ko, koMapping, FunctionViewModel, chosen, AlertViewModel, autopopulate
             this.addAutopopulateConfig = function(){
                 if (self.chosen_card && self.target_node && self.string_template){
                     var auto_configs = ko.unwrap(self.autopopulate_configs) || []
+                    var card_nodegroup = ko.unwrap(self.chosen_card)
+                    var target_node_id = ko.unwrap(self.target_node)
+                    var template_value = ko.unwrap(self.string_template) || ''
+                    var template_has_content = /\S/.test(template_value)
+
+                    if (!card_nodegroup || !target_node_id || !template_has_content){
+                        self.alert(new AlertViewModel(
+                            'ep-alert-red',
+                            'Validation Error',
+                            'Configuration is incomplete. Please choose a card, choose a node, and provide a template.',
+                            null,
+                            null)
+                        );
+                        return;
+                    }
+
+                    for (var card_rule_index = 0; card_rule_index < auto_configs.length; card_rule_index++){
+                        var existing_card_rule = auto_configs[card_rule_index]
+                        var existing_card_nodegroup = ko.unwrap(existing_card_rule.nodegroup)
+                        var existing_card_target_id = ko.unwrap(existing_card_rule.target_node)
+
+                        if (existing_card_nodegroup == card_nodegroup && existing_card_target_id != target_node_id){
+                            self.alert(new AlertViewModel(
+                                'ep-alert-red',
+                                'Validation Error',
+                                'Only one auto-populate rule is allowed per card.',
+                                null,
+                                null)
+                            );
+                            return;
+                        }
+                    }
+
                     var configured_nodes = []
 
                     for (var a = 0; a < auto_configs.length; a++){

@@ -14,6 +14,7 @@
 #
 #   python manage.py test tests.function_tests --settings="tests.test_settings_for_docker"
 
+import types
 import uuid
 
 from django.contrib.auth.models import User
@@ -353,3 +354,230 @@ class AutopopulateNodeFromCardNodesTests(BaseAutopopulateFunctionTestCase):
         self.assertIn(
             "York, England", self._location_summary_text_values(location_tile)
         )
+
+
+class AfterFunctionSaveValidationTests(BaseAutopopulateFunctionTestCase):
+    """
+    Unit tests for AutopopulateNodeFromCardNodes.after_function_save.
+
+    after_function_save reads its configuration from tile.config (not from
+    self.config), so these tests use a lightweight SimpleNamespace as the tile
+    object rather than a full database-backed Tile.  No resource or request
+    fixture is required.
+    """
+
+    # ------------------------------------------------------------------
+    # Private helper
+    # ------------------------------------------------------------------
+
+    def _tile_with_configs(self, autopopulate_configs):
+        """Return a minimal tile-like object with the given autopopulate_configs."""
+        return types.SimpleNamespace(
+            config={"autopopulate_configs": autopopulate_configs}
+        )
+
+    def _make_func(self):
+        return AutopopulateNodeFromCardNodes(config={})
+
+    # ------------------------------------------------------------------
+    # Valid configurations
+    # ------------------------------------------------------------------
+
+    def test_empty_configs_list_passes(self):
+        """An empty autopopulate_configs list must not raise."""
+        tile = self._tile_with_configs([])
+        self._make_func().after_function_save(tile, request=None)
+
+    def test_single_complete_config_passes(self):
+        """A complete, valid single-entry config must not raise."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "<First Name> <Last Name>",
+                }
+            ]
+        )
+        self._make_func().after_function_save(tile, request=None)
+
+    def test_two_distinct_nodegroups_passes(self):
+        """Two entries with distinct nodegroups must not raise."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "<First Name> <Last Name>",
+                },
+                {
+                    "nodegroup": LOCATION_DETAILS_NODEGROUP_ID,
+                    "target_node": LOCATION_SUMMARY_NODE_ID,
+                    "string_template": "<City>, <Country>",
+                },
+            ]
+        )
+        self._make_func().after_function_save(tile, request=None)
+
+    def test_non_dict_tile_config_treated_as_empty(self):
+        """When tile.config is not a dict it is treated as empty – no raise."""
+        tile = types.SimpleNamespace(config="not a dict")
+        self._make_func().after_function_save(tile, request=None)
+
+    def test_none_autopopulate_configs_treated_as_empty(self):
+        """When autopopulate_configs is None it is treated as empty – no raise."""
+        tile = types.SimpleNamespace(config={"autopopulate_configs": None})
+        self._make_func().after_function_save(tile, request=None)
+
+    # ------------------------------------------------------------------
+    # Invalid configurations – structural errors
+    # ------------------------------------------------------------------
+
+    def test_non_list_autopopulate_configs_raises(self):
+        """autopopulate_configs that is not a list must raise ValueError."""
+        tile = types.SimpleNamespace(config={"autopopulate_configs": "not a list"})
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_non_dict_entry_raises(self):
+        """An entry in autopopulate_configs that is not a dict must raise ValueError."""
+        tile = self._tile_with_configs(["not a dict"])
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    # ------------------------------------------------------------------
+    # Invalid configurations – missing required fields
+    # ------------------------------------------------------------------
+
+    def test_missing_nodegroup_raises(self):
+        """An entry without a nodegroup key must raise ValueError."""
+        tile = self._tile_with_configs(
+            [{"target_node": FULL_NAME_NODE_ID, "string_template": "<First Name>"}]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_empty_nodegroup_raises(self):
+        """An entry with an empty-string nodegroup must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": "",
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "<First Name>",
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_missing_target_node_raises(self):
+        """An entry without a target_node key must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "string_template": "<First Name>",
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_empty_target_node_raises(self):
+        """An entry with an empty-string target_node must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": "",
+                    "string_template": "<First Name>",
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_missing_string_template_raises(self):
+        """An entry without a string_template key must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_whitespace_only_string_template_raises(self):
+        """A string_template containing only whitespace must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "   ",
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_empty_string_template_raises(self):
+        """A string_template that is an empty string must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "",
+                }
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    # ------------------------------------------------------------------
+    # Duplicate nodegroup rule
+    # ------------------------------------------------------------------
+
+    def test_duplicate_nodegroup_raises(self):
+        """Two entries sharing the same nodegroup must raise ValueError."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "<First Name> <Last Name>",
+                },
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": LAST_NAME_NODE_ID,
+                    "string_template": "<First Name>",
+                },
+            ]
+        )
+        with self.assertRaises(ValueError):
+            self._make_func().after_function_save(tile, request=None)
+
+    def test_duplicate_nodegroup_error_message(self):
+        """The ValueError for a duplicate nodegroup must name the constraint."""
+        tile = self._tile_with_configs(
+            [
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": FULL_NAME_NODE_ID,
+                    "string_template": "<First Name>",
+                },
+                {
+                    "nodegroup": PERSON_DETAILS_NODEGROUP_ID,
+                    "target_node": LAST_NAME_NODE_ID,
+                    "string_template": "<First Name>",
+                },
+            ]
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self._make_func().after_function_save(tile, request=None)
+        self.assertIn("card", str(ctx.exception).lower())
