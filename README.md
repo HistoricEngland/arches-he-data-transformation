@@ -11,6 +11,7 @@ An Arches application which contains extensions relating to data transformation 
 
 This Arches application contains extensions that allow the following:
 - Bulk HTML export using an ETL Module where the input is a CSV file containing resource instance ids in a column with the header 'resourceid' to identify the resources for bulk HTML export.
+- Auto populate node populates a target string node using values from other nodes in the same card, triggered on save, with configurable templates, multiple mappings, and optional overwriting of existing values.
 
 ## Installing for Development
 
@@ -56,7 +57,57 @@ For development purposes, you can treat this app as a standard Arches project. E
 
   6. Once setup and webpack builds are complete, open a browser and navigate to `http://localhost:8002` or use `act view` in a terminal to open the project in your default browser.
 
-  For more details, see the [arches-containers documentation](../arches-containers/readme.md).
+  For more details, see the [arches-containers documentation](https://github.com/HistoricEngland/arches-containers).
+
+
+## Running Tests
+
+> If using arches-containers, run these commands inside the application container.
+
+The test suite uses `arches.test.runner.ArchesTestRunner` (which creates and tears down Elasticsearch indices automatically) and Django's `TestCase` for per-test transaction isolation. Tests are organised into named sub-packages under `tests/`, each containing a `base_test.py` with shared setup and one or more `test_<feature>.py` files.
+
+### 1. Configure Test Settings
+
+**Docker / CI (arches-containers)**
+
+Copy the Docker settings template. The environment variables it requires are set automatically by arches-containers:
+
+```bash
+cp tests/test_settings_for_docker.py.template tests/test_settings_for_docker.py
+```
+
+> `tests/test_settings_for_docker.py` is in `.gitignore` and must never be committed.
+
+**Local (non-Docker)**
+
+`tests/test_settings.py` is already configured for a local PostgreSQL instance. Ensure your local database is running and matches the credentials in that file.
+
+### 2. Run the Tests
+
+Run the full test suite:
+
+```bash
+python manage.py test tests --settings="tests.test_settings_for_docker"
+```
+
+Run all tests in a sub-package (e.g. function tests only):
+
+```bash
+python manage.py test tests.function_tests --settings="tests.test_settings_for_docker"
+```
+
+Run a specific test file:
+
+```bash
+python manage.py test tests.function_tests.test_autopopulate_node_from_card_nodes \
+    --settings="tests.test_settings_for_docker"
+```
+
+For local (non-Docker) runs, replace `test_settings_for_docker` with `test_settings`.
+
+### Adding New Tests
+
+Follow the existing sub-package structure under `tests/`: create a named sub-package (e.g. `function_tests/`), add an `__init__.py`, write a `base_test.py` inheriting from `django.test.TestCase` with `setUpTestData` for shared fixture loading, and add `test_<feature>.py` files inheriting from that base class.
 
 
 ## Using This App in Your Arches Project
